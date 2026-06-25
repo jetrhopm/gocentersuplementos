@@ -22,6 +22,39 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'clip' => [
+        'base_url' => env('CLIP_BASE_URL', 'https://api.payclip.com'),
+        'public_key' => env('CLIP_PUBLIC_KEY'),
+        'secret_key' => env('CLIP_SECRET_KEY'),
+        'api_key' => env('CLIP_API_KEY'),
+        'auth_scheme' => env('CLIP_AUTH_SCHEME', 'Basic'),
+        'webhook_secret' => env('CLIP_WEBHOOK_SECRET'),
+        'webhook_url' => env('CLIP_WEBHOOK_URL'),
+        'success_url' => env('CLIP_SUCCESS_URL'),
+        'error_url' => env('CLIP_ERROR_URL'),
+    ],
+
+    'store' => [
+        'shipping_cost' => (float) env('STORE_SHIPPING_COST', 150),
+        'free_shipping_from' => (float) env('STORE_FREE_SHIPPING_FROM', 999),
+        'low_stock_threshold' => (int) env('STORE_LOW_STOCK_THRESHOLD', 5),
+        'max_upload_kb' => (int) env('STORE_MAX_UPLOAD_KB', 2048),
+        'whatsapp' => env('STORE_WHATSAPP'),
+        'theme' => env('STORE_THEME', 'volt'),
+        'meta_description' => env('STORE_META_DESCRIPTION', 'Tienda fitness de proteinas, suplementos y ropa deportiva.'),
+        'maintenance_mode' => filter_var(env('STORE_MAINTENANCE_MODE', false), FILTER_VALIDATE_BOOL),
+        'hero_carousel_slugs' => array_values(array_filter(array_map('trim', explode(',', env('STORE_HERO_CAROUSEL_SLUGS', 'combo-entrenamiento,super-pack,mega-combo'))))),
+        'product_carousel_slugs' => array_values(array_filter(array_map('trim', explode(',', env('STORE_PRODUCT_CAROUSEL_SLUGS', 'combo-entrenamiento,super-pack,paquete-completo,oferta-flash-amino-inlabs-5-piezas,super-combo,combo-completo-azul'))))),
+    ],
+
+    'bank_transfer' => [
+        'bank_name' => env('BANK_NAME'),
+        'account_holder' => env('BANK_ACCOUNT_HOLDER'),
+        'account_number' => env('BANK_ACCOUNT_NUMBER'),
+        'clabe' => env('BANK_CLABE'),
+        'instructions' => env('BANK_TRANSFER_INSTRUCTIONS'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

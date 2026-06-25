@@ -1,0 +1,21 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    RewriteRule ^(?:app|bootstrap|config|database|node_modules|resources|routes|storage|tests|vendor)(?:/|$) - [F,L]
+    RewriteRule ^(?:\.env|\.git(?:/|$)|artisan|composer\.(?:json|lock)|package(?:-lock)?\.json|phpunit\.xml|vite\.config\.js|README\.md)$ - [F,L]
+
+    RewriteRule ^(build|assets|storage)/(.*)$ public/$1/$2 [L]
+    RewriteRule ^(favicon\.ico|robots\.txt)$ public/$1 [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    Options -Indexes
+</IfModule>

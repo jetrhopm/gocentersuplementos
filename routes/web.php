@@ -1,7 +1,70 @@
 <?php
 
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ClipWebhookController;
+use App\Http\Controllers\StoreController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/', [StoreController::class, 'home'])->name('home');
+Route::get('/login', fn () => redirect()->route('admin.login'))->name('login');
+Route::get('/productos', [StoreController::class, 'products'])->name('products.index');
+Route::get('/categoria/{category}', [StoreController::class, 'category'])->name('categories.show');
+Route::get('/ofertas', [StoreController::class, 'offers'])->name('offers');
+Route::get('/productos/{product}', [StoreController::class, 'show'])->name('products.show');
+Route::get('/consultar-pedido', [StoreController::class, 'lookup'])->name('orders.lookup');
+Route::post('/consultar-pedido', [StoreController::class, 'lookupResult'])->name('orders.lookup.result');
+Route::get('/sitemap.xml', [StoreController::class, 'sitemap'])->name('sitemap');
+
+Route::view('/privacidad', 'store.policy', ['type' => 'privacy'])->name('policies.privacy');
+Route::view('/terminos', 'store.policy', ['type' => 'terms'])->name('policies.terms');
+Route::view('/devoluciones', 'store.policy', ['type' => 'returns'])->name('policies.returns');
+Route::view('/envios', 'store.policy', ['type' => 'shipping'])->name('policies.shipping');
+
+Route::prefix('carrito')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/', [CartController::class, 'store'])->name('store');
+    Route::patch('/{key}', [CartController::class, 'update'])->name('update');
+    Route::delete('/{key}', [CartController::class, 'destroy'])->name('destroy');
+    Route::post('/cupon', [CartController::class, 'applyCoupon'])->name('coupon.apply');
+    Route::delete('/cupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
+});
+
+Route::prefix('checkout')->name('checkout.')->group(function () {
+    Route::get('/', [CheckoutController::class, 'show'])->name('show');
+    Route::post('/', [CheckoutController::class, 'store'])->name('store');
+    Route::get('/pedido-recibido/{order}', [CheckoutController::class, 'received'])->name('received');
+    Route::post('/pedido-recibido/{order}/referencia', [CheckoutController::class, 'transferReference'])->name('transfer.reference');
+});
+
+Route::get('/pago/clip/exito', [CheckoutController::class, 'clipSuccess'])->name('checkout.clip.success');
+Route::get('/pago/clip/error', [CheckoutController::class, 'clipError'])->name('checkout.clip.error');
+Route::post('/webhooks/clip', ClipWebhookController::class)->name('webhooks.clip');
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [AuthController::class, 'login'])->name('login');
+        Route::post('/login', [AuthController::class, 'authenticate'])->name('authenticate');
+    });
+
+    Route::middleware(['auth', 'admin'])->group(function () {
+        Route::get('/', DashboardController::class)->name('dashboard');
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+        Route::get('/pedidos/exportar', [AdminOrderController::class, 'export'])->name('orders.export');
+        Route::get('/configuracion', [AdminSettingsController::class, 'index'])->name('settings.index');
+        Route::post('/configuracion/clip/probar', [AdminSettingsController::class, 'testClip'])->name('settings.clip.test');
+        Route::put('/configuracion', [AdminSettingsController::class, 'update'])->name('settings.update');
+        Route::resource('productos', AdminProductController::class)->names('products')->parameters(['productos' => 'product'])->except('show');
+        Route::delete('/productos/{product}/imagenes/{image}', [AdminProductController::class, 'destroyImage'])->name('products.images.destroy');
+        Route::resource('categorias', AdminCategoryController::class)->names('categories')->parameters(['categorias' => 'category'])->except('show');
+        Route::get('/pedidos/{order}/imprimir', [AdminOrderController::class, 'print'])->name('orders.print');
+        Route::patch('/pedidos/{order}/estado', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
+        Route::resource('pedidos', AdminOrderController::class)->names('orders')->parameters(['pedidos' => 'order'])->only(['index', 'show']);
+    });
 });
