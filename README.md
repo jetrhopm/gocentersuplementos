@@ -259,3 +259,23 @@ El proyecto esta listo para repositorio con `.gitignore` protegiendo:
 - logs y caches locales
 
 Antes de subir, confirma que `.env.example` no tenga secretos reales.
+
+### Subir a GitHub por primera vez
+
+El proyecto ya esta en la rama `main` con un commit inicial. Para publicarlo en tu repositorio privado:
+
+```bash
+# 1. Crea un repositorio privado vacio en GitHub (sin README ni .gitignore).
+# 2. Conecta tu repositorio (cambia USUARIO y REPO):
+git remote add origin git@github.com:USUARIO/REPO.git
+# o por HTTPS:
+# git remote add origin https://github.com/USUARIO/REPO.git
+
+# 3. Sube la rama main:
+git push -u origin main
+```
+
+Notas:
+
+- El remote `laravel-upstream` apunta al repositorio oficial de Laravel; no le hagas push.
+- Recuerda recrear el `.env` en el servidor de produccion: el repositorio no lo incluye.
