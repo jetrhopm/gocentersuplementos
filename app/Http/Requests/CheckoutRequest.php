@@ -38,6 +38,7 @@ class CheckoutRequest extends FormRequest
             'references' => ['nullable', 'string', 'max:500'],
             'customer_notes' => ['nullable', 'string', 'max:500'],
             'payment_method' => ['required', 'in:transferencia,clip'],
+            'website' => ['prohibited'],
         ];
     }
 

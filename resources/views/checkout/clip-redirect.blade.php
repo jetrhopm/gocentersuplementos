@@ -2,6 +2,10 @@
 
 @section('title', 'Pago con Clip | '.config('app.name'))
 
+@php
+    $receivedUrl = URL::signedRoute('checkout.received', $order);
+@endphp
+
 @section('content')
 <section class="container-page py-16">
     <div class="panel mx-auto max-w-2xl overflow-hidden p-8 text-center">
@@ -21,7 +25,7 @@
                 <i data-lucide="credit-card" class="h-4 w-4"></i>
                 Abrir pago seguro
             </button>
-            <a href="{{ route('checkout.received', $order) }}" class="btn-secondary min-h-12">Ver pedido</a>
+            <a href="{{ $receivedUrl }}" class="btn-secondary min-h-12">Ver pedido</a>
         </div>
 
         <p class="mt-5 text-xs leading-5 text-zinc-500">Si la ventana no abre, usa el boton para continuar. Tu pago se procesa directamente en Clip con sus estandares de seguridad.</p>
@@ -55,7 +59,7 @@
                 return;
             }
 
-            window.location.href = event.data.redirect || @json(route('checkout.received', $order));
+            window.location.href = event.data.redirect || @json($receivedUrl);
         });
     });
 </script>

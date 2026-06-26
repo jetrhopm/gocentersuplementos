@@ -38,7 +38,7 @@ class OrderController extends Controller
 
         return view('admin.orders.show', [
             'order' => $order,
-            'statuses' => Order::statuses(),
+            'statuses' => Order::statusesForUser(request()->user(), $order),
         ]);
     }
 

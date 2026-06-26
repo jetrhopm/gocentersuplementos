@@ -115,8 +115,10 @@ Configura:
 
 ```dotenv
 CLIP_BASE_URL=https://api.payclip.com
+CLIP_PUBLIC_KEY=
+CLIP_SECRET_KEY=
 CLIP_API_KEY=
-CLIP_AUTH_SCHEME=Bearer
+CLIP_AUTH_SCHEME=Basic
 CLIP_WEBHOOK_SECRET=
 CLIP_WEBHOOK_URL=
 CLIP_SUCCESS_URL=
@@ -125,11 +127,12 @@ CLIP_ERROR_URL=
 
 Notas:
 
-- `CLIP_API_KEY` nunca se imprime en Blade ni JavaScript.
-- Si Clip te entrega un encabezado completo como `Basic ...` o `Bearer ...`, puedes ponerlo completo en `CLIP_API_KEY`.
-- Si Clip te entrega solo el token, usa `CLIP_AUTH_SCHEME` para indicar el prefijo.
+- `CLIP_PUBLIC_KEY` y `CLIP_SECRET_KEY` son el flujo normal de Clip Checkout. Se usan solo en servidor para generar la autorizacion `Basic`.
+- `CLIP_API_KEY` queda como token legacy opcional si Clip te entrega una credencial antigua tipo `Bearer`.
+- Ninguna clave de Clip se imprime en Blade ni JavaScript.
 - El servicio dedicado esta en `app/Services/ClipService.php`.
-- El webhook esta en `POST /webhooks/clip`.
+- El webhook compatible con el proyecto anterior esta en `POST /pago/clip/webhook`. Tambien existe `POST /webhooks/clip`.
+- Las URL de retorno compatibles son `/pago/clip/retorno/{folio}` y `/pago/clip/cancelado/{folio}`. Tambien existen `/pago/clip/exito?folio=...` y `/pago/clip/error?folio=...`.
 - En el panel admin puedes actualizar Clip desde `Configuracion > Clip`. Las claves sensibles se guardan en `.env` y no se muestran completas.
 
 ## Configuracion desde el panel
@@ -179,9 +182,13 @@ ngrok http 8000
 ```dotenv
 APP_URL=https://tu-url.ngrok-free.app
 CLIP_WEBHOOK_URL=https://tu-url.ngrok-free.app/webhooks/clip
-CLIP_SUCCESS_URL=https://tu-url.ngrok-free.app/pago/clip/exito
-CLIP_ERROR_URL=https://tu-url.ngrok-free.app/pago/clip/error
+CLIP_SUCCESS_URL=
+CLIP_ERROR_URL=
 ```
+
+URL recomendada para pegar en Clip: `https://tu-url.ngrok-free.app/pago/clip/webhook`. Si prefieres usar la ruta nueva del proyecto, tambien funciona `https://tu-url.ngrok-free.app/webhooks/clip`.
+
+Las URL de exito/error pueden quedar vacias. El sistema enviara automaticamente a Clip las rutas con folio del pedido: `/pago/clip/retorno/{folio}` y `/pago/clip/cancelado/{folio}`.
 
 4. Limpia cache de config:
 

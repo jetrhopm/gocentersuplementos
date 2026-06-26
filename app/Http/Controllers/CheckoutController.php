@@ -8,6 +8,7 @@ use App\Services\CartService;
 use App\Services\ClipService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use RuntimeException;
 
 class CheckoutController extends Controller
@@ -56,11 +57,11 @@ class CheckoutController extends Controller
 
                 return redirect()
                     ->route('checkout.clip.error', ['folio' => $order->folio])
-                    ->withErrors(['clip' => $exception->getMessage()]);
+                    ->withErrors(['clip' => 'No se pudo iniciar el pago con Clip. Revisa tu pedido o intenta con transferencia.']);
             }
         }
 
-        return redirect()->route('checkout.received', $order);
+        return redirect()->to(URL::signedRoute('checkout.received', $order));
     }
 
     public function received(Order $order)
@@ -98,6 +99,21 @@ class CheckoutController extends Controller
     {
         $folio = $request->string('folio')->toString();
         $order = $folio ? Order::where('folio', $folio)->first() : null;
+
+        return view('checkout.clip-error', compact('order'));
+    }
+
+    public function clipReturn(Order $order)
+    {
+        return view('checkout.clip-success', compact('order'));
+    }
+
+    public function clipCancelled(Order $order)
+    {
+        if ($order->status === Order::STATUS_PENDING_CLIP) {
+            $this->orders->transition($order, Order::STATUS_CANCELLED, 'Pago cancelado por el usuario en Clip');
+            $order->refresh();
+        }
 
         return view('checkout.clip-error', compact('order'));
     }

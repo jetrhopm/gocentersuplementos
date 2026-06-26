@@ -6,6 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="@yield('meta_description', config('services.store.meta_description'))">
     <title>@yield('title', config('app.name'))</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/gocenter/logo.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/gocenter/logo.jpg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-zinc-950">
@@ -15,47 +17,53 @@
     $whatsapp = config('services.store.whatsapp');
     $theme = config('services.store.theme', 'volt');
     $storeName = config('app.name', 'Go Center Suplementos');
-    $brandMark = str_contains(strtolower($storeName), 'go center') ? 'GO' : 'NP';
-    $brandLogo = public_path('assets/gocenter/logo.jpg');
+    $showHeaderTitle = config('services.store.header_show_title', false);
+    $headerBanner = public_path('assets/gocenter/header-banner.jpg');
 @endphp
 <div class="site-shell theme-{{ $theme }} min-h-dvh w-full overflow-x-hidden pb-24 md:pb-0">
-    <header class="fixed inset-x-0 top-0 z-50 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur" x-data="{ open: false }">
-        <div class="container-page flex h-16 items-center justify-between gap-4">
-            <a href="{{ route('home') }}" class="site-brand">
-                @if(file_exists($brandLogo))
-                    <span class="brand-mark brand-logo-frame">
-                        <img src="{{ asset('assets/gocenter/logo.jpg') }}" alt="{{ $storeName }}" class="h-full w-full object-cover">
-                    </span>
-                @else
-                    <span class="brand-mark brand-logo-frame grid place-items-center text-sm font-black">{{ $brandMark }}</span>
-                @endif
-                <span class="site-brand-name">
-                    @if(str_contains(strtolower($storeName), 'go center'))
+    <header
+        class="fixed inset-x-0 top-0 z-50 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur"
+        x-data="{ open: false }"
+        x-on:click.outside="open = false"
+        x-on:keydown.escape.window="open = false"
+    >
+        <div class="container-page header-grid h-16">
+            <div class="header-left">
+                <button class="btn-secondary px-3 lg:hidden" x-on:click="open = ! open" aria-label="Menu">
+                    <i data-lucide="menu" class="h-4 w-4"></i>
+                </button>
+            </div>
+            <a href="{{ route('home') }}" class="site-brand header-brand">
+                @if($showHeaderTitle || ! file_exists($headerBanner))
+                    <span class="site-brand-name">
+                        @if(str_contains(strtolower($storeName), 'go center'))
                         <span>Go Center</span>
                         <span>Suplementos</span>
-                    @else
+                        @else
                         <span>{{ $storeName }}</span>
-                    @endif
-                </span>
+                        @endif
+                    </span>
+                @else
+                    <span class="site-brand-banner">
+                        <img src="{{ asset('assets/gocenter/header-banner.jpg') }}" alt="{{ $storeName }}">
+                    </span>
+                @endif
             </a>
-            <nav class="hidden items-center gap-5 lg:flex">
+            <nav class="header-nav hidden items-center justify-center gap-5 lg:flex">
                 <a class="muted-link" href="{{ route('products.index') }}">Catalogo</a>
                 @foreach($navCategories as $category)
                     <a class="muted-link" href="{{ route('categories.show', $category) }}">{{ $category->name }}</a>
                 @endforeach
             </nav>
-            <div class="flex items-center gap-2">
+            <div class="header-right flex items-center justify-end gap-2">
                 <a href="{{ route('orders.lookup') }}" class="hidden muted-link sm:inline-flex">Consultar pedido</a>
                 <a href="{{ route('cart.index') }}" class="btn-secondary relative px-3" aria-label="Carrito">
                     <i data-lucide="shopping-cart" class="h-4 w-4"></i>
-                    <span class="accent-pill absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs font-black">{{ $cartCount }}</span>
+                    <span class="accent-pill absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs font-black" data-cart-count>{{ $cartCount }}</span>
                 </a>
-                <button class="btn-secondary px-3 lg:hidden" x-on:click="open = ! open" aria-label="Menu">
-                    <i data-lucide="menu" class="h-4 w-4"></i>
-                </button>
             </div>
         </div>
-        <div class="border-t border-zinc-800 bg-zinc-950 lg:hidden" x-show="open">
+        <div class="border-t border-zinc-800 bg-zinc-950 lg:hidden" x-show="open" x-transition>
             <nav class="container-page grid gap-1 py-4">
                 <a class="muted-link py-2" href="{{ route('products.index') }}">Catalogo</a>
                 @foreach($navCategories as $category)
@@ -79,37 +87,89 @@
         </div>
     @endif
 
+    <div class="toast-stack" data-toast-stack aria-live="polite" aria-atomic="true"></div>
+
     <main class="pt-16">
         @yield('content')
     </main>
 
-    <footer class="mt-20 border-t border-zinc-800 bg-zinc-950">
-        <div class="container-page grid gap-8 py-10 md:grid-cols-4">
-            <div>
+    <section class="mt-20 border-t border-zinc-800 bg-zinc-950/60">
+        <div class="container-page py-12">
+            <div class="flex items-center gap-2">
+                <i data-lucide="map-pin" class="accent-text h-5 w-5"></i>
+                <h2 class="text-sm font-bold uppercase tracking-wide text-white">Nuestras sucursales</h2>
+            </div>
+            <p class="mt-2 text-sm text-zinc-400">Visitanos en Los Mochis y Guasave, Sinaloa.</p>
+
+            <div class="mt-6 grid gap-6 md:grid-cols-2">
+                <div class="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
+                    <iframe
+                        title="Mapa Go Center Suplementos Los Mochis"
+                        src="https://www.google.com/maps?q=Go%20Center%20Suplementos%2C%20Av.%20Santos%20Degollado%20345%2C%20Centro%2C%2081200%20Los%20Mochis%2C%20Sin.&hl=es&z=16&output=embed"
+                        class="h-64 w-full border-0"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        allowfullscreen
+                    ></iframe>
+                    <div class="flex items-start justify-between gap-3 p-4">
+                        <div>
+                            <div class="font-bold text-white">Los Mochis</div>
+                            <p class="mt-1 text-sm text-zinc-400">Av. Santos Degollado 345, Centro, 81200 Los Mochis, Sin.</p>
+                        </div>
+                        <a href="https://maps.app.goo.gl/ZJ1WprT2hUvnbfSN9" target="_blank" rel="noopener" class="btn-secondary min-h-10 shrink-0 text-sm">
+                            <i data-lucide="navigation" class="h-4 w-4"></i>
+                            Como llegar
+                        </a>
+                    </div>
+                </div>
+
+                <div class="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
+                    <iframe
+                        title="Mapa Go Center Suplementos Guasave"
+                        src="https://www.google.com/maps?q=Go%20Center%20Suplementos%2C%20Blvd.%2016%20de%20Septiembre%2C%20Centro%2C%2081000%20Guasave%2C%20Sin.&hl=es&z=16&output=embed"
+                        class="h-64 w-full border-0"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        allowfullscreen
+                    ></iframe>
+                    <div class="flex items-start justify-between gap-3 p-4">
+                        <div>
+                            <div class="font-bold text-white">Guasave</div>
+                            <p class="mt-1 text-sm text-zinc-400">Blvd. 16 de Septiembre, Centro, 81000 Guasave, Sin.</p>
+                        </div>
+                        <a href="https://maps.app.goo.gl/QKUWfJ73u1uCtVF5A" target="_blank" rel="noopener" class="btn-secondary min-h-10 shrink-0 text-sm">
+                            <i data-lucide="navigation" class="h-4 w-4"></i>
+                            Como llegar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="mt-0 border-t border-zinc-800 bg-zinc-950">
+        <div class="container-page py-10">
+            <div class="max-w-md">
                 <div class="font-black uppercase tracking-normal text-white">{{ $storeName }}</div>
                 <p class="mt-3 text-sm text-zinc-400">Suplementos deportivos, paquetes, proteinas y accesorios con pagos seguros y envios a todo Mexico.</p>
             </div>
-            <div>
-                <div class="text-sm font-bold text-white">Tienda</div>
-                <div class="mt-3 grid gap-2">
-                    <a class="muted-link" href="{{ route('products.index') }}">Productos</a>
-                    <a class="muted-link" href="{{ route('orders.lookup') }}">Consulta de pedido</a>
-                    <a class="muted-link" href="{{ route('cart.index') }}">Carrito</a>
+            <div class="mt-8 flex flex-row justify-between gap-8">
+                <div>
+                    <div class="text-sm font-bold text-white">Tienda</div>
+                    <div class="mt-3 grid gap-2">
+                        <a class="muted-link" href="{{ route('products.index') }}">Productos</a>
+                        <a class="muted-link" href="{{ route('orders.lookup') }}">Consulta de pedido</a>
+                        <a class="muted-link" href="{{ route('cart.index') }}">Carrito</a>
+                    </div>
                 </div>
-            </div>
-            <div>
-                <div class="text-sm font-bold text-white">Politicas</div>
-                <div class="mt-3 grid gap-2">
-                    <a class="muted-link" href="{{ route('policies.privacy') }}">Privacidad</a>
-                    <a class="muted-link" href="{{ route('policies.terms') }}">Terminos</a>
-                    <a class="muted-link" href="{{ route('policies.returns') }}">Devoluciones</a>
-                    <a class="muted-link" href="{{ route('policies.shipping') }}">Envios</a>
-                </div>
-            </div>
-            <div>
-                <div class="text-sm font-bold text-white">Admin</div>
-                <div class="mt-3 grid gap-2">
-                    <a class="muted-link" href="{{ route('admin.login') }}">Panel privado</a>
+                <div class="text-right">
+                    <div class="text-sm font-bold text-white">Politicas</div>
+                    <div class="mt-3 grid gap-2">
+                        <a class="muted-link" href="{{ route('policies.privacy') }}">Privacidad</a>
+                        <a class="muted-link" href="{{ route('policies.terms') }}">Terminos</a>
+                        <a class="muted-link" href="{{ route('policies.returns') }}">Devoluciones</a>
+                        <a class="muted-link" href="{{ route('policies.shipping') }}">Envios</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,9 +199,7 @@
         <a href="{{ route('cart.index') }}" class="mobile-bottom-link relative {{ request()->routeIs('cart.*') || request()->routeIs('checkout.show') ? 'active' : '' }}">
             <i data-lucide="shopping-cart" class="h-5 w-5"></i>
             <span>Carrito</span>
-            @if($cartCount > 0)
-                <span class="accent-pill absolute right-3 top-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[10px] font-black">{{ $cartCount }}</span>
-            @endif
+            <span class="accent-pill absolute right-3 top-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[10px] font-black {{ $cartCount > 0 ? '' : 'hidden' }}" data-cart-count>{{ $cartCount }}</span>
         </a>
     </nav>
 </div>

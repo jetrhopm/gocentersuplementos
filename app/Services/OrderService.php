@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Mail\OrderReceiptMail;
 use App\Models\Coupon;
 use App\Models\InventoryMovement;
 use App\Models\Order;
@@ -9,6 +10,8 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
@@ -25,7 +28,7 @@ class OrderService
             throw ValidationException::withMessages(['cart' => 'Tu carrito esta vacio.']);
         }
 
-        return DB::transaction(function () use ($data, $paymentMethod, $items) {
+        $order = DB::transaction(function () use ($data, $paymentMethod, $items) {
             foreach ($items as $item) {
                 if ($item['quantity'] > $item['stock']) {
                     throw ValidationException::withMessages(['cart' => 'Uno o mas productos ya no tienen stock suficiente.']);
@@ -34,6 +37,18 @@ class OrderService
 
             $totals = $this->cart->totals();
             $status = $paymentMethod === 'clip' ? Order::STATUS_PENDING_CLIP : Order::STATUS_PENDING_TRANSFER;
+
+            if ($totals['coupon'] instanceof Coupon) {
+                $coupon = Coupon::whereKey($totals['coupon']->id)->lockForUpdate()->first();
+
+                if (! $coupon || ! $coupon->isUsable((float) $totals['subtotal'])) {
+                    throw ValidationException::withMessages(['coupon' => 'El cupon ya no esta disponible.']);
+                }
+
+                $totals['coupon'] = $coupon;
+                $totals['discount'] = $coupon->discountFor((float) $totals['subtotal']);
+                $totals['total'] = round(max(0, $totals['subtotal'] + $totals['shipping'] - $totals['discount']), 2);
+            }
 
             $order = Order::create([
                 'folio' => Order::makeFolio(),
@@ -88,13 +103,24 @@ class OrderService
 
             return $order->load(['items', 'payment']);
         });
+
+        try {
+            Mail::to($order->customer_email)->send(new OrderReceiptMail($order));
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return $order;
     }
 
     public function markAsPaid(Order $order, array $paymentData = []): Order
     {
-        return DB::transaction(function () use ($order, $paymentData) {
+        $sendReceipt = false;
+
+        $order = DB::transaction(function () use ($order, $paymentData, &$sendReceipt) {
             $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
             $payment = $order->payment()->lockForUpdate()->first();
+            $sendReceipt = $order->status !== Order::STATUS_PAID;
 
             if ($payment) {
                 $payment->update([
@@ -117,6 +143,16 @@ class OrderService
 
             return $order->refresh()->load(['items', 'payment']);
         });
+
+        if ($sendReceipt) {
+            try {
+                Mail::to($order->customer_email)->send(new OrderReceiptMail($order));
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        return $order;
     }
 
     public function transition(Order $order, string $status, ?string $reason = null, ?string $tracking = null, ?string $notes = null): Order

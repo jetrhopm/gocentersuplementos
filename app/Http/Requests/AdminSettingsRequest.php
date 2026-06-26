@@ -16,17 +16,19 @@ class AdminSettingsRequest extends FormRequest
     {
         $this->merge([
             'STORE_MAINTENANCE_MODE' => $this->boolean('STORE_MAINTENANCE_MODE'),
+            'STORE_HEADER_SHOW_TITLE' => $this->boolean('STORE_HEADER_SHOW_TITLE'),
         ]);
     }
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'APP_NAME' => ['required', 'string', 'max:80'],
             'APP_URL' => ['required', 'url', 'max:180'],
             'STORE_META_DESCRIPTION' => ['nullable', 'string', 'max:220'],
             'STORE_WHATSAPP' => ['nullable', 'string', 'max:30'],
             'STORE_THEME' => ['required', Rule::in(['volt', 'ember', 'glacier', 'gocenter'])],
+            'STORE_HEADER_SHOW_TITLE' => ['boolean'],
             'STORE_SHIPPING_COST' => ['required', 'numeric', 'min:0', 'max:99999'],
             'STORE_FREE_SHIPPING_FROM' => ['required', 'numeric', 'min:0', 'max:999999'],
             'STORE_LOW_STOCK_THRESHOLD' => ['required', 'integer', 'min:0', 'max:9999'],
@@ -34,7 +36,13 @@ class AdminSettingsRequest extends FormRequest
             'STORE_MAINTENANCE_MODE' => ['boolean'],
             'STORE_HERO_CAROUSEL_SLUGS' => ['nullable', 'string', 'max:1000'],
             'STORE_PRODUCT_CAROUSEL_SLUGS' => ['nullable', 'string', 'max:1400'],
+        ];
 
+        if (! $this->user()?->isSuperAdmin()) {
+            return $rules;
+        }
+
+        return array_merge($rules, [
             'BANK_NAME' => ['nullable', 'string', 'max:120'],
             'BANK_ACCOUNT_HOLDER' => ['nullable', 'string', 'max:160'],
             'BANK_ACCOUNT_NUMBER' => ['nullable', 'string', 'max:80'],
@@ -59,6 +67,6 @@ class AdminSettingsRequest extends FormRequest
             'MAIL_PASSWORD' => ['nullable', 'string', 'max:1000'],
             'MAIL_FROM_ADDRESS' => ['required', 'email', 'max:180'],
             'MAIL_FROM_NAME' => ['required', 'string', 'max:120'],
-        ];
+        ]);
     }
 }

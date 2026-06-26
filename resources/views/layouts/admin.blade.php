@@ -5,20 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') | {{ config('app.name') }}</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/gocenter/logo.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/gocenter/logo.jpg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-zinc-950">
 <div class="theme-{{ config('services.store.theme', 'volt') }} min-h-dvh w-full overflow-x-hidden bg-zinc-950" x-data="{ adminMenuOpen: false }">
-    <header class="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur">
+    <header
+        class="admin-header sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur"
+        x-on:click.outside="adminMenuOpen = false"
+        x-on:keydown.escape.window="adminMenuOpen = false"
+    >
         <div class="container-page flex h-16 items-center justify-between gap-4">
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
-                <span class="brand-mark grid h-9 w-9 place-items-center rounded-md text-sm font-black">NP</span>
-                <span class="font-black uppercase text-white">Admin</span>
+            <a href="{{ route('admin.dashboard') }}" class="admin-brand">
+                <span class="admin-brand-banner">
+                    <img src="{{ asset('assets/gocenter/header-banner.jpg') }}" alt="{{ config('app.name') }}">
+                </span>
+                <span class="admin-brand-copy">
+                    <span>Panel admin</span>
+                    <small>{{ config('app.name') }}</small>
+                </span>
             </a>
             <nav class="hidden items-center gap-2 md:flex">
                 <a class="admin-nav-link" href="{{ route('admin.dashboard') }}">Dashboard</a>
                 <a class="admin-nav-link" href="{{ route('admin.products.index') }}">Productos</a>
                 <a class="admin-nav-link" href="{{ route('admin.categories.index') }}">Categorias</a>
+                <a class="admin-nav-link" href="{{ route('admin.coupons.index') }}">Cupones</a>
                 <a class="admin-nav-link" href="{{ route('admin.orders.index') }}">Pedidos</a>
                 <a class="admin-nav-link" href="{{ route('admin.settings.index') }}">Configuracion</a>
             </nav>
@@ -40,7 +52,7 @@
                 </button>
             </div>
         </div>
-        <div id="admin-mobile-menu" class="border-t border-zinc-800 bg-zinc-950 md:hidden" x-show="adminMenuOpen" x-transition>
+        <div id="admin-mobile-menu" class="admin-mobile-menu border-t border-zinc-800 bg-zinc-950 md:hidden" x-show="adminMenuOpen" x-transition>
             <nav class="container-page grid gap-2 py-4">
                 <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.dashboard') }}">
                     <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
@@ -53,6 +65,10 @@
                 <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.categories.index') }}">
                     <i data-lucide="tags" class="h-4 w-4"></i>
                     Categorias
+                </a>
+                <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.coupons.index') }}">
+                    <i data-lucide="ticket-percent" class="h-4 w-4"></i>
+                    Cupones
                 </a>
                 <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.orders.index') }}">
                     <i data-lucide="clipboard-list" class="h-4 w-4"></i>

@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $superAdminEmail = env('SUPER_ADMIN_EMAIL') ?: (app()->environment(['local', 'testing']) ? 'superadmin@local.test' : null);
+        $superAdminPassword = env('SUPER_ADMIN_PASSWORD') ?: (app()->environment(['local', 'testing']) ? 'password' : null);
         $adminEmail = env('ADMIN_EMAIL');
         $adminPassword = env('ADMIN_PASSWORD');
 
@@ -23,15 +25,23 @@ class DatabaseSeeder extends Seeder
             throw new RuntimeException('Define ADMIN_EMAIL y ADMIN_PASSWORD en .env antes de ejecutar los seeders.');
         }
 
-        User::updateOrCreate(
-            ['email' => $adminEmail],
-            [
-                'name' => env('ADMIN_NAME', 'Administrador'),
-                'password' => Hash::make($adminPassword),
-                'role' => 'admin',
+        if ($superAdminEmail && $superAdminPassword) {
+            $superAdmin = User::firstOrNew(['email' => $superAdminEmail]);
+            $superAdmin->forceFill([
+                'name' => env('SUPER_ADMIN_NAME', 'Super Administrador'),
+                'password' => Hash::make($superAdminPassword),
+                'role' => User::ROLE_SUPER_ADMIN,
                 'active' => true,
-            ]
-        );
+            ])->save();
+        }
+
+        $admin = User::firstOrNew(['email' => $adminEmail]);
+        $admin->forceFill([
+            'name' => env('ADMIN_NAME', 'Administrador'),
+            'password' => Hash::make($adminPassword),
+            'role' => User::ROLE_ADMIN,
+            'active' => true,
+        ])->save();
 
         $categories = collect([
             ['Proteinas', 'proteinas'],
@@ -39,6 +49,7 @@ class DatabaseSeeder extends Seeder
             ['Creatinas', 'creatinas'],
             ['Accesorios deportivos', 'accesorios-deportivos'],
             ['Packs Go Center', 'packs-gocenter'],
+            ['Mochilas', 'mochilas'],
             ['Ropa deportiva hombre', 'ropa-deportiva-hombre'],
             ['Ropa deportiva mujer', 'ropa-deportiva-mujer'],
             ['Ofertas', 'ofertas'],
@@ -566,13 +577,492 @@ class DatabaseSeeder extends Seeder
                 'image' => 'assets/gocenter/products/mass-max-pack-2230.jpg',
                 'description' => 'Incluye Mass Infusion 12LB, 100% Whey Protein 5LB, Essential Creatine 200 servicios sin sabor y Omega-3 90 capsulas. De regalo Essential Creatine 60 servicios. Costo de envio no incluido.',
             ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Paquete Pro',
+                'brand' => 'Go Center',
+                'price' => 1990,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/paquete-pro-1990.jpg',
+                'description' => 'Incluye Hydro Whey 5LB, Essential Creatine 100 servicios sin sabor, Amino X 30 servicios y Venom Inferno 40 servicios. De regalo Colageno Hidrolizado 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Fitness Pro Pack',
+                'brand' => 'Go Center',
+                'price' => 1650,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/fitness-pro-pack-1650.jpg',
+                'description' => 'Incluye Iso Femme 3LB, Essential Creatine 100 servicios sin sabor, Amino Energy 30 servicios y The Curse 50 servicios. De regalo Colageno Hidrolizado 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Maximum Pack',
+                'brand' => 'Go Center',
+                'price' => 2030,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/maximum-pack-2030.jpg',
+                'description' => 'Incluye Essential Creatine 200 servicios sin sabor, Creatine GAT 1KG, Venom Inferno 40 servicios y Psychotic 35 servicios. De regalo Essential Creatine 100 servicios sin sabor. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Combo Wellness',
+                'brand' => 'Go Center',
+                'price' => 3130,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/combo-wellness-3130.jpg',
+                'description' => 'Incluye Performance Whey Isolate 5LB, Shaker Superwoman, Creatine 1KG, Ryse Kool-Aid 30 servicios, Omega-3 90 capsulas y Arginina 180 capsulas. De regalo Performance Whey Isolate Bag 5 libras. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Kit Performance',
+                'brand' => 'Go Center',
+                'price' => 2260,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/kit-performance-2260.jpg',
+                'description' => 'Incluye Essential Creatine 100 servicios sin sabor, Arginina 180 capsulas, Omega-3 90 capsulas, Psychotic 35 servicios, Psychotic Gold 35 servicios y Psychotic SAW 30 servicios. De regalo Multi-Vitamin 50 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Strong Pack',
+                'brand' => 'Go Center',
+                'price' => 2990,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/strong-pack-2990.jpg',
+                'description' => 'Incluye 100% Whey Protein 5LB, Essential Creatine 200 servicios sin sabor, Shaker Superman, Ryse Godzilla 40 servicios, Omega-3 90 capsulas y Venom 40 servicios. De regalo 100% Whey Protein Bag 5 libras. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Magnum Pack',
+                'brand' => 'Go Center',
+                'price' => 3490,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/magnum-pack-3490.jpg',
+                'description' => 'Incluye Gold Standard 100% Whey 5LB, Nitro Tech 100% Whey Gold 5LB, 100% Whey Protein 5LB y Essential Creatine 200 servicios sin sabor. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Standard Pack',
+                'brand' => 'Go Center',
+                'price' => 2860,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/standard-pack-2860.jpg',
+                'description' => 'Incluye Gold Standard 100% Whey 5LB, Gold Standard 100% Whey 2LB y Micronized Creatine Powder 240 servicios. De regalo Amino Muscle Recovery 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Nuevo Combo Isolate',
+                'brand' => 'Go Center',
+                'price' => 2870,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/nuevo-combo-isolate-2870.jpg',
+                'description' => 'Incluye ISO 100 Hydrolized 5LB, Performance Whey Isolate 5LB y Essential Creatine 200 servicios sin sabor. De regalo Amino Muscle Recovery 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Super Pack Gold',
+                'brand' => 'Go Center',
+                'price' => 3320,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/super-pack-gold-3320.jpg',
+                'description' => 'Incluye Nitro Tech 100% Whey Gold 5LB, ISO 100 Hydrolized 5LB y Creatina 90 servicios. De regalo Amino Muscle Recovery 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Pack Evolucion',
+                'brand' => 'Go Center',
+                'price' => 1450,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/pack-evolucion-1450.jpg',
+                'description' => 'Incluye Whey Inlabs 5LB, Psychotic Black 35 servicios y Creatina Inlabs 200 servicios. De regalo Amino Inlabs 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Paquete Evolucion',
+                'brand' => 'Go Center',
+                'price' => 2590,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/paquete-evolucion-2590.jpg',
+                'description' => 'Incluye The Curse 50 servicios, ISO 100 5LB y Micronized Creatine BPI 120 servicios. De regalo Amino Inlabs 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Paquete Performance',
+                'brand' => 'Go Center',
+                'price' => 2270,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/paquete-performance-2270.jpg',
+                'description' => 'Incluye Creatina GAT 200 servicios, Gold Standard 5LB y Best BCAA 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Paquete Isolate',
+                'brand' => 'Go Center',
+                'price' => 1380,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/paquete-isolate-1380.jpg',
+                'description' => 'Incluye Creatina Isopure 100 servicios, Isolate Inlabs 5LB y Shaker Birdman. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Paquete Ideal',
+                'brand' => 'Go Center',
+                'price' => 1390,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/paquete-ideal-1390.jpg',
+                'description' => 'Incluye Inlabs 100% Whey Protein 5LB, Meta Creatine 100 servicios e Inlabs Omega-3 90 capsulas. De regalo Amino Inlabs 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Combo Completo Maniak',
+                'brand' => 'Go Center',
+                'price' => 1880,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/combo-completo-maniak-1880.jpg',
+                'description' => 'Incluye Citrulina Dragon 60 servicios, Omega 3 GAT 90 capsulas, Whey Inlabs 5LB, Shaker Insane Labz y Maniak 30 servicios. De regalo Amino Inlabs 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Pack Isolate',
+                'brand' => 'Go Center',
+                'price' => 1390,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/pack-isolate-1390.jpg',
+                'description' => 'Incluye Isolate Inlabs 5LB, Omega Inlabs 90 capsulas y Ghost Creatina Creapure 50 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Combo Entrenamiento Venom',
+                'brand' => 'Go Center',
+                'price' => 1690,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/combo-entrenamiento-venom-1690.jpg',
+                'description' => 'Incluye Venom 20 servicios, Whey Inlabs 5LB y Creatina Inlabs 200 servicios. De regalo Multi Inlabs 50 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Combo Energia + Rendimiento',
+                'brand' => 'Go Center',
+                'price' => 1760,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/combo-energia-rendimiento-1760.jpg',
+                'description' => 'Incluye Amino Energy 30 servicios, Cell Tech 6LB, CBum Essential 30 servicios y Shaker Grenade. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Pack Evolucion Isolate',
+                'brand' => 'Go Center',
+                'price' => 1550,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/pack-evolucion-isolate-1550.jpg',
+                'description' => 'Incluye Isolate Inlabs 5LB, Breach 30 servicios y Psychotic Hellboy 35 servicios. De regalo Amino Inlabs 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Combo Dragon Elite',
+                'brand' => 'Go Center',
+                'price' => 2620,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/combo-dragon-elite-2620.jpg',
+                'description' => 'Incluye Beta Alanina Dragon 60 servicios, Creatina Dragon 200 servicios, Protein Pharm 27 servicios, Venom Fully-Loaded 20 servicios y L-Citrulina Dragon 60 servicios. De regalo Omega 3 Dragon 60 capsulas. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Pack 3 Creatinas Essential',
+                'brand' => 'Go Center',
+                'price' => 630,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/pack-3-creatinas-essential-630.jpg',
+                'description' => 'Incluye 3 Essential Creatine sin sabor de 60 servicios cada una. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Combo Entrenamiento Isolate',
+                'brand' => 'Go Center',
+                'price' => 1610,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/combo-entrenamiento-isolate-1610.jpg',
+                'description' => 'Incluye Venom Infierno 40 servicios, Isolate Inlabs 5LB y Creatina Dragon 60 servicios. De regalo Amino Inlabs 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Combo Entrenamiento Cell Tech',
+                'brand' => 'Go Center',
+                'price' => 1440,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/combo-entrenamiento-cell-tech-1440.jpg',
+                'description' => 'Incluye Venom Essential 30 servicios, Creatina BSN 60 servicios, Cell Tech 120 servicios y Amino X 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Mega Promo',
+                'brand' => 'Go Center',
+                'price' => 1470,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/mega-promo-1470.jpg',
+                'description' => 'Incluye Creatina Birdman 90 servicios, Omega 3 GAT 90 capsulas, CBum Essential 30 servicios y BCAA Hardcore 30 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Nueva Promo',
+                'brand' => 'Go Center',
+                'price' => 2030,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/nueva-promo-2030.jpg',
+                'description' => 'Incluye CBum Essential 30 servicios, Carnivor 4.6LB y Amino Energy 65 servicios. De regalo Creatina Inlabs 60 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Super Pack Ashwagandha',
+                'brand' => 'Go Center',
+                'price' => 1890,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/super-pack-ashwagandha-1890.jpg',
+                'description' => 'Incluye Geaaar Mutant 30 servicios, Isolate Inlabs 5LB, Creatina Inlabs 200 servicios sin sabor y Ashwagandha Blife 200 capsulas. De regalo Multi Inlabs 50 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Pack Pre',
+                'brand' => 'Go Center',
+                'price' => 2020,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/pack-pre-2020.jpg',
+                'description' => 'Incluye Venom 20 servicios, Maniak 30 servicios, Psychotic Extreme 30 servicios y CBum Essential 30 servicios. De regalo Nitraflex Sport 20 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Pack Ganador',
+                'brand' => 'Go Center',
+                'price' => 1910,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/pack-ganador-1910.jpg',
+                'description' => 'Incluye Creatina Inlabs 200 servicios sin sabor, Mutant Mass 15LB y Psychotic Black 35 servicios. De regalo Multi Inlabs 50 servicios. Costo de envio no incluido.',
+            ],
+            [
+                'category' => 'packs-gocenter',
+                'name' => 'Combo Whey Protein',
+                'brand' => 'Go Center',
+                'price' => 2790,
+                'stock' => 10,
+                'featured' => true,
+                'image' => 'assets/gocenter/products/combo-whey-protein-2790.jpg',
+                'description' => 'Incluye Nitro Tech Whey Gold 5LB, Whey Protein Punisher 5LB, Whey Inlabs 5LB y Shaker Transformers. Costo de envio no incluido.',
+            ],
+        ]);
+
+        $products = array_merge($products, [
+            [
+                'category' => 'mochilas',
+                'name' => '30L Perfect Duffle Bag Superman 2025',
+                'brand' => 'Wolfpak',
+                'price' => 2800,
+                'compare_at_price' => 3500,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/30l-perfect-duffle-bag-superman-2025-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-superman-2025-1.png',
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-superman-2025-2.jpg',
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-superman-2025-3.jpg',
+                ],
+                'description' => 'Maleta duffle Wolfpak de 30L edicion Superman, hecha con material Oxford impermeable, cierres YKK, base rigida, apertura completa, compartimentos para laptop, calzado y accesorios. Incluye parches removibles y correa ajustable para gimnasio o viaje.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '9L Backpack Mini Superman',
+                'brand' => 'Wolfpak',
+                'price' => 1540,
+                'compare_at_price' => 1930,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/9l-backpack-mini-superman-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/9l-backpack-mini-superman-1.png',
+                    'assets/wolfpak/mochilas/9l-backpack-mini-superman-2.jpg',
+                    'assets/wolfpak/mochilas/9l-backpack-mini-superman-3.jpg',
+                ],
+                'description' => 'Mini backpack Wolfpak de 9L edicion Superman. Mochila compacta para oficina, gimnasio, hiking o uso diario, con superficie Oxford 900D impermeable, apertura 180 grados, cierre YKK resistente, espacio Hook & Loop para parches y compartimento interior para telefono o tablet pequena.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '9L Tactical Sling Bag Batman',
+                'brand' => 'Wolfpak',
+                'price' => 1680,
+                'compare_at_price' => 2100,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/9l-tactical-sling-bag-batman-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/9l-tactical-sling-bag-batman-1.png',
+                    'assets/wolfpak/mochilas/9l-tactical-sling-bag-batman-2.jpg',
+                    'assets/wolfpak/mochilas/9l-tactical-sling-bag-batman-3.jpg',
+                ],
+                'description' => 'Sling bag tactica Wolfpak Batman de 9L. Bolsa cruzada ligera con nylon resistente al clima, bolsillos internos, cierre dual YKK, sistema MOLLE frontal, bolsillo posterior acolchado y correa ajustable para usar al pecho, espalda u hombro.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '30L Perfect Duffle Bag Batman',
+                'brand' => 'Wolfpak',
+                'price' => 2800,
+                'compare_at_price' => 3500,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/30l-perfect-duffle-bag-batman-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-batman-1.png',
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-batman-2.jpg',
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-batman-3.jpg',
+                ],
+                'description' => 'Maleta duffle Wolfpak Batman de 30L para viaje o gimnasio, con Oxford impermeable, cierres YKK, base rigida, apertura completa, bolsillos multiples, porta laptop, separador para calzado, manga trasera para trolley y parches removibles incluidos.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '35L Batman Meal Prep Management',
+                'brand' => 'Wolfpak',
+                'price' => 3390,
+                'compare_at_price' => 4240,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/35l-batman-meal-prep-management-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/35l-batman-meal-prep-management-1.png',
+                    'assets/wolfpak/mochilas/35l-batman-meal-prep-management-2.png',
+                    'assets/wolfpak/mochilas/35l-batman-meal-prep-management-3.png',
+                ],
+                'description' => 'Backpack Wolfpak Batman Meal Prep de 35L con compartimento cooler integrado, contenedores de comida, bolsa de hielo, utensilios, bolsillos amplios, porta laptop, doble porta shaker y superficie Oxford 900D impermeable. Ideal para gimnasio, trabajo y preparacion de comidas.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '4L Mini Tactical Sling Bag Batman',
+                'brand' => 'Wolfpak',
+                'price' => 1540,
+                'compare_at_price' => 1930,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/4l-mini-tactical-sling-bag-batman-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/4l-mini-tactical-sling-bag-batman-1.png',
+                    'assets/wolfpak/mochilas/4l-mini-tactical-sling-bag-batman-2.jpg',
+                    'assets/wolfpak/mochilas/4l-mini-tactical-sling-bag-batman-3.jpg',
+                ],
+                'description' => 'Mini sling bag tactica Wolfpak Batman de 4L. Compacta, ligera y resistente al clima, con organizadores internos, cierre dual YKK, sistema MOLLE, bolsillo acolchado posterior y correa ajustable para llevar tus esenciales sin cargar una mochila grande.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '15L Backpack Batman',
+                'brand' => 'Wolfpak',
+                'price' => 2380,
+                'compare_at_price' => 2980,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/15l-backpack-batman-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/15l-backpack-batman-1.png',
+                    'assets/wolfpak/mochilas/15l-backpack-batman-2.jpg',
+                    'assets/wolfpak/mochilas/15l-backpack-batman-3.jpg',
+                ],
+                'description' => 'Backpack Wolfpak Batman de 15L para uso diario, oficina, gimnasio o escuela. Cuenta con trolley sleeve, superficie Oxford impermeable, apertura amplia, cierres YKK, espacio para parches removibles y compartimentos para organizar accesorios.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '9L Backpack Mini Batman',
+                'brand' => 'Wolfpak',
+                'price' => 1540,
+                'compare_at_price' => 1930,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/9l-backpack-mini-batman-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/9l-backpack-mini-batman-1.png',
+                    'assets/wolfpak/mochilas/9l-backpack-mini-batman-2.jpg',
+                    'assets/wolfpak/mochilas/9l-backpack-mini-batman-3.jpg',
+                ],
+                'description' => 'Mini backpack Wolfpak Batman de 9L. Mochila compacta con Oxford 900D impermeable, apertura 180 grados, cierres YKK, espacio Hook & Loop para parches y compartimento interior para telefono o tablet pequena.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '9L Backpack Mini Retro Batman',
+                'brand' => 'Wolfpak',
+                'price' => 1930,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/9l-backpack-mini-retro-batman-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/9l-backpack-mini-retro-batman-1.png',
+                    'assets/wolfpak/mochilas/9l-backpack-mini-retro-batman-2.jpg',
+                    'assets/wolfpak/mochilas/9l-backpack-mini-retro-batman-3.jpg',
+                ],
+                'description' => 'Mini backpack Wolfpak Retro Batman de 9L con diseno compacto para uso diario, oficina, gimnasio o salidas. Integra superficie Oxford 900D impermeable, apertura amplia, cierres YKK, espacio para parches y compartimento interior protector.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '30L Perfect Duffle Bag DC Villains',
+                'brand' => 'Wolfpak',
+                'price' => 2800,
+                'compare_at_price' => 3500,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/30l-perfect-duffle-bag-dc-villains-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-dc-villains-1.png',
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-dc-villains-2.jpg',
+                    'assets/wolfpak/mochilas/30l-perfect-duffle-bag-dc-villains-3.jpg',
+                ],
+                'description' => 'Maleta duffle Wolfpak DC Villains de 30L, resistente para viaje y gimnasio. Incluye Oxford impermeable, cierres YKK, base rigida, apertura completa, multiples bolsillos, area para laptop, compartimento de calzado y parches removibles.',
+            ],
+            [
+                'category' => 'mochilas',
+                'name' => '9L Backpack Mini DC Villains',
+                'brand' => 'Wolfpak',
+                'price' => 1540,
+                'compare_at_price' => 1930,
+                'stock' => 8,
+                'featured' => false,
+                'image' => 'assets/wolfpak/mochilas/9l-backpack-mini-dc-villains-1.png',
+                'images' => [
+                    'assets/wolfpak/mochilas/9l-backpack-mini-dc-villains-1.png',
+                    'assets/wolfpak/mochilas/9l-backpack-mini-dc-villains-2.jpg',
+                    'assets/wolfpak/mochilas/9l-backpack-mini-dc-villains-3.jpg',
+                ],
+                'description' => 'Mini backpack Wolfpak DC Villains de 9L para uso diario, gimnasio o viajes cortos. Fabricada con Oxford 900D impermeable, apertura 180 grados, cierres YKK resistentes, espacio para parches y compartimento interior para telefono o tablet.',
+            ],
         ]);
 
         foreach ($products as $productData) {
             $category = $categories[$productData['category']];
             $variants = $productData['variants'] ?? [];
             $image = $productData['image'];
-            unset($productData['category'], $productData['variants'], $productData['image']);
+            $gallery = $productData['images'] ?? [$image];
+            unset($productData['category'], $productData['variants'], $productData['image'], $productData['images']);
 
             $product = Product::updateOrCreate(
                 ['slug' => Str::slug($productData['name'])],
@@ -585,10 +1075,12 @@ class DatabaseSeeder extends Seeder
                 ])
             );
 
-            $product->images()->updateOrCreate(
-                ['sort_order' => 0],
-                ['path' => $image, 'alt' => $product->name]
-            );
+            foreach (array_values($gallery) as $imageIndex => $galleryImage) {
+                $product->images()->updateOrCreate(
+                    ['sort_order' => $imageIndex],
+                    ['path' => $galleryImage, 'alt' => $product->name]
+                );
+            }
 
             foreach ($variants as $index => $variant) {
                 $product->variants()->updateOrCreate(
@@ -602,9 +1094,50 @@ class DatabaseSeeder extends Seeder
             }
         }
 
+        // Imagenes adicionales (galeria) para packs existentes.
+        $extraImages = [
+            'pack-isolate-inlabs-4-creatina-200' => 'assets/gocenter/products/pack-isolate-inlabs-3160-2.jpg',
+            'pack-whey-inlabs-4-creatina-200' => 'assets/gocenter/products/pack-whey-inlabs-2760-2.jpg',
+            'pack-performance-isolate-3-creatina-60' => 'assets/gocenter/products/pack-performance-2370-2.jpg',
+            'pack-whey-inlabs-3-creatina-60' => 'assets/gocenter/products/pack-whey-inlabs-2070-2.jpg',
+            'pack-isolate-inlabs-2-creatina-60' => 'assets/gocenter/products/pack-isolate-inlabs-1650-2.jpg',
+            'super-promo-azul' => 'assets/gocenter/products/super-promo-2260-2.jpg',
+            'pack-entrenamiento-completo-morado' => 'assets/gocenter/products/pack-entrenamiento-completo-1520-2.jpg',
+            'promo-completa' => 'assets/gocenter/products/promo-completa-1390-2.jpg',
+            'pack-mutant-mass-creatina-inlabs' => 'assets/gocenter/products/pack-mutant-mass-creatina-1250-2.jpg',
+            'pack-whey-inlabs-2-creatina-60' => 'assets/gocenter/products/pack-whey-inlabs-1450-2.jpg',
+            'pack-entrenamiento-completo-amarillo' => 'assets/gocenter/products/pack-entrenamiento-completo-1290-2.jpg',
+            'combo-completo' => 'assets/gocenter/products/combo-completo-1630-2.jpg',
+            'super-promo-verde' => 'assets/gocenter/products/super-promo-990-2.jpg',
+            'promocion-morada' => 'assets/gocenter/products/promocion-2370-2.jpg',
+            'combo-completo-azul' => 'assets/gocenter/products/combo-completo-azul-1880-2.jpg',
+            'mega-combo' => 'assets/gocenter/products/mega-combo-2330-2.jpg',
+            'combo-completo-dorado' => 'assets/gocenter/products/combo-completo-dorado-2250-2.jpg',
+            'super-combo' => 'assets/gocenter/products/super-combo-3090-2.jpg',
+            'super-pack' => 'assets/gocenter/products/super-pack-2390-2.jpg',
+            'pack-isolate-inlabs-5-creatina-200' => 'assets/gocenter/products/pack-isolate-inlabs-promo-3790.jpg',
+            'pack-whey-inlabs-5-creatina-200' => 'assets/gocenter/products/pack-whey-inlabs-promo-3290.jpg',
+        ];
+
+        foreach ($extraImages as $slug => $path) {
+            $product = Product::where('slug', $slug)->first();
+
+            if ($product) {
+                $product->images()->updateOrCreate(
+                    ['path' => $path],
+                    ['alt' => $product->name, 'sort_order' => 1]
+                );
+            }
+        }
+
         Coupon::updateOrCreate(
             ['code' => 'GYM10'],
             ['type' => 'percent', 'value' => 10, 'minimum_total' => 500, 'max_uses' => 100, 'active' => true]
+        );
+
+        Coupon::updateOrCreate(
+            ['code' => 'BIENVENIDA10'],
+            ['type' => 'percent', 'value' => 10, 'minimum_total' => 0, 'max_uses' => null, 'active' => true]
         );
 
         foreach ([
@@ -613,5 +1146,7 @@ class DatabaseSeeder extends Seeder
         ] as $key => $value) {
             Setting::updateOrCreate(['key' => $key], ['value' => $value, 'type' => 'string', 'is_public' => false]);
         }
+
+        $this->call(PostalCodeSeeder::class);
     }
 }

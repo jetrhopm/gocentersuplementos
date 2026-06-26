@@ -24,13 +24,13 @@
                             <div>Total: <span class="price-text">${{ number_format($order->total, 2) }}</span></div>
                             <div>Guia: {{ $order->tracking_number ?: 'Pendiente' }}</div>
                         </div>
-                        <a href="{{ route('checkout.received', $order) }}" class="btn-secondary mt-6">Ver detalle</a>
+                        <a href="{{ URL::signedRoute('orders.public.show', $order) }}" class="btn-secondary mt-6">Ver detalle</a>
                     </div>
                 @else
                     <div class="panel p-6 text-zinc-400">No encontramos un pedido con esos datos.</div>
                 @endif
             @else
-                <div class="panel p-6 text-zinc-400">Ingresa el folio y el correo o telefono usado en el checkout.</div>
+                <div class="panel p-6 text-zinc-400">Ingresa el folio y el correo o telefono usado en tu compra.</div>
             @endisset
         </div>
     </div>

@@ -44,6 +44,8 @@ class SettingsController extends Controller
 
     public function testClip(Request $request, EnvFileService $env, ClipService $clip)
     {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
         $values = $env->values($this->keys());
 
         $override = [
@@ -70,6 +72,7 @@ class SettingsController extends Controller
             'STORE_META_DESCRIPTION',
             'STORE_WHATSAPP',
             'STORE_THEME',
+            'STORE_HEADER_SHOW_TITLE',
             'STORE_SHIPPING_COST',
             'STORE_FREE_SHIPPING_FROM',
             'STORE_LOW_STOCK_THRESHOLD',

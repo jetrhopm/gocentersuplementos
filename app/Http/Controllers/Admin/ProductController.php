@@ -53,11 +53,20 @@ class ProductController extends Controller
 
     public function update(ProductRequest $request, Product $product)
     {
-        $product->update($this->payload($request, $product));
+        $payload = $this->payload($request, $product);
+        $product->fill($payload);
+        $productChanged = $product->isDirty();
+        $product->save();
         $this->syncVariants($product, $request->input('variants', []));
         $this->storeImages($product, $request);
+        $product->refresh();
+        $message = $productChanged || $request->hasFile('images') || $request->filled('variants')
+            ? 'Producto actualizado. Estado actual: '.($product->active ? 'activo' : 'inactivo').'.'
+            : 'No se detectaron cambios para guardar. Estado actual: '.($product->active ? 'activo' : 'inactivo').'.';
 
-        return redirect()->route('admin.products.edit', $product)->with('status', 'Producto actualizado.');
+        return redirect()
+            ->route('admin.products.edit', $product)
+            ->with('status', $message);
     }
 
     public function destroy(Product $product)

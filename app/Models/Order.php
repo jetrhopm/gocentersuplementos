@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
+use App\Models\User;
 
 class Order extends Model
 {
@@ -92,7 +93,7 @@ class Order extends Model
         return [
             self::STATUS_PENDING_TRANSFER => 'Pendiente transferencia',
             self::STATUS_PENDING_CLIP => 'Pendiente Clip',
-            self::STATUS_PAID => 'Pagado',
+            self::STATUS_PAID => 'Pago recibido',
             self::STATUS_REJECTED => 'Rechazado',
             self::STATUS_PREPARING => 'Preparando',
             self::STATUS_SHIPPED => 'Enviado',
@@ -102,8 +103,35 @@ class Order extends Model
         ];
     }
 
+    public static function statusesForUser(?User $user, ?self $order = null): array
+    {
+        if ($user?->isSuperAdmin()) {
+            return self::statuses();
+        }
+
+        if ($order?->payment_method === 'clip' && $order->status === self::STATUS_PENDING_CLIP) {
+            return [
+                self::STATUS_PENDING_CLIP => self::statuses()[self::STATUS_PENDING_CLIP],
+            ];
+        }
+
+        return collect(self::statuses())
+            ->only([
+                self::STATUS_PAID,
+                self::STATUS_PREPARING,
+                self::STATUS_SHIPPED,
+                self::STATUS_DELIVERED,
+            ])
+            ->all();
+    }
+
     public function statusLabel(): string
     {
         return self::statuses()[$this->status] ?? Str::headline($this->status);
+    }
+
+    public function transferNumericReference(): string
+    {
+        return str_pad((string) $this->id, 8, '0', STR_PAD_LEFT);
     }
 }

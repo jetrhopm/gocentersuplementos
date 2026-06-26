@@ -3,7 +3,7 @@
 @section('title', 'Pedido '.$order->folio.' | '.config('app.name'))
 
 @section('content')
-<section class="container-page py-10">
+<section class="container-page py-10" data-checkout-complete>
     <div class="grid gap-6 lg:grid-cols-[1fr_24rem]">
         <div class="grid gap-6">
             <div class="panel p-6">
@@ -20,12 +20,27 @@
                         <div><span class="text-zinc-500">Titular:</span> {{ $bank['account_holder'] ?: 'Configura BANK_ACCOUNT_HOLDER' }}</div>
                         <div><span class="text-zinc-500">Cuenta:</span> {{ $bank['account_number'] ?: 'Configura BANK_ACCOUNT_NUMBER' }}</div>
                         <div><span class="text-zinc-500">CLABE:</span> {{ $bank['clabe'] ?: 'Configura BANK_CLABE' }}</div>
-                        <div><span class="text-zinc-500">Concepto:</span> {{ $order->folio }}</div>
+                        <div class="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+                            <div class="text-zinc-500">Concepto sugerido</div>
+                            <div class="mt-1 text-lg font-black text-white">{{ $order->folio }}</div>
+                            <p class="mt-2 leading-6 text-zinc-400">Si tu banco no permite letras o guiones en el concepto, usa esta referencia numerica:</p>
+                            <div class="mt-2 inline-flex rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-xl font-black text-red-100">
+                                {{ $order->transferNumericReference() }}
+                            </div>
+                        </div>
                         <p class="leading-6 text-zinc-400">{{ $bank['instructions'] }}</p>
                     </div>
-                    <form method="POST" action="{{ route('checkout.transfer.reference', $order) }}" class="mt-5 flex flex-col gap-3 sm:flex-row">
+                    <div class="mt-5 rounded-lg border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
+                        Registrar la referencia es opcional, pero nos ayuda a identificar tu pago mas rapido. Si tu banco genero una referencia propia o no te dejo poner concepto, puedes escribir la referencia que aparece en tu comprobante.
+                    </div>
+                    <form method="POST" action="{{ URL::signedRoute('checkout.transfer.reference', $order) }}" class="mt-5 flex flex-col gap-3 sm:flex-row">
                         @csrf
-                        <input name="transfer_reference" value="{{ old('transfer_reference', $order->transfer_reference) }}" placeholder="Referencia o comprobante">
+                        <input
+                            name="transfer_reference"
+                            value="{{ old('transfer_reference', $order->transfer_reference) }}"
+                            placeholder="Referencia usada o generada por tu banco (opcional)"
+                            maxlength="160"
+                        >
                         <button class="btn-secondary">Guardar referencia</button>
                     </form>
                 </div>

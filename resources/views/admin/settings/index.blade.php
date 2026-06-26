@@ -4,6 +4,7 @@
 
 @php
     $value = fn (string $key, mixed $default = '') => old($key, $values[$key] ?? $default);
+    $isSuperAdmin = auth()->user()?->isSuperAdmin();
 @endphp
 
 @section('content')
@@ -28,7 +29,7 @@
     @method('PUT')
 
     <div class="panel p-3">
-        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
+        <div class="grid gap-2 sm:grid-cols-2 {{ $isSuperAdmin ? 'lg:grid-cols-6' : 'lg:grid-cols-3' }}">
             <button type="button" class="settings-tab" :class="tab === 'general' ? 'settings-tab-active' : ''" x-on:click="tab = 'general'">
                 General
             </button>
@@ -36,14 +37,16 @@
                 Carruseles
             </button>
             <button type="button" class="settings-tab" :class="tab === 'pagos' ? 'settings-tab-active' : ''" x-on:click="tab = 'pagos'">
-                Pagos
+                Envio{{ $isSuperAdmin ? ' y transferencia' : '' }}
             </button>
+            @if($isSuperAdmin)
             <button type="button" class="settings-tab" :class="tab === 'clip' ? 'settings-tab-active' : ''" x-on:click="tab = 'clip'">
                 Clip
             </button>
             <button type="button" class="settings-tab" :class="tab === 'correo' ? 'settings-tab-active' : ''" x-on:click="tab = 'correo'">
                 Correo
             </button>
+            @endif
             <button type="button" class="settings-tab" :class="tab === 'seo' ? 'settings-tab-active' : ''" x-on:click="tab = 'seo'">
                 SEO y estado
             </button>
@@ -58,6 +61,13 @@
             <div class="field"><label>WhatsApp</label><input name="STORE_WHATSAPP" value="{{ $value('STORE_WHATSAPP') }}" placeholder="5215512345678"></div>
             <div class="field"><label>Tamano maximo imagen KB</label><input type="number" name="STORE_MAX_UPLOAD_KB" value="{{ $value('STORE_MAX_UPLOAD_KB', 2048) }}" min="512"></div>
             <div class="field"><label>Stock bajo desde</label><input type="number" name="STORE_LOW_STOCK_THRESHOLD" value="{{ $value('STORE_LOW_STOCK_THRESHOLD', 5) }}" min="0"></div>
+            <label class="md:col-span-2 flex items-center gap-3 rounded-md border border-zinc-800 bg-zinc-950 p-4">
+                <input type="checkbox" name="STORE_HEADER_SHOW_TITLE" value="1" @checked(filter_var($value('STORE_HEADER_SHOW_TITLE', false), FILTER_VALIDATE_BOOL))>
+                <span>
+                    <span class="block font-bold text-white">Mostrar titulo en el encabezado</span>
+                    <span class="mt-1 block text-sm text-zinc-500">Si lo desactivas, el encabezado usara el banner Go Center en lugar del texto para no chocar visualmente con el contenido.</span>
+                </span>
+            </label>
             <div class="md:col-span-2">
                 <label>Estilo visual de la tienda</label>
                 <div class="mt-3 grid gap-3 md:grid-cols-4">
@@ -104,23 +114,31 @@
     </section>
 
     <section class="panel mt-6 p-5" x-show="tab === 'pagos'" x-cloak>
-        <h2 class="text-xl font-black uppercase text-white">Pagos y envio</h2>
+        <h2 class="text-xl font-black uppercase text-white">Envio{{ $isSuperAdmin ? ' y transferencia' : '' }}</h2>
         <div class="mt-5 grid gap-4 md:grid-cols-2">
             <div class="field"><label>Costo de envio</label><input name="STORE_SHIPPING_COST" value="{{ $value('STORE_SHIPPING_COST', 99) }}" inputmode="decimal"></div>
             <div class="field"><label>Envio gratis desde</label><input name="STORE_FREE_SHIPPING_FROM" value="{{ $value('STORE_FREE_SHIPPING_FROM', 1499) }}" inputmode="decimal"></div>
+            @if($isSuperAdmin)
             <div class="field"><label>Banco</label><input name="BANK_NAME" value="{{ $value('BANK_NAME') }}"></div>
             <div class="field"><label>Titular</label><input name="BANK_ACCOUNT_HOLDER" value="{{ $value('BANK_ACCOUNT_HOLDER') }}"></div>
             <div class="field"><label>Cuenta</label><input name="BANK_ACCOUNT_NUMBER" value="{{ $value('BANK_ACCOUNT_NUMBER') }}"></div>
             <div class="field"><label>CLABE</label><input name="BANK_CLABE" value="{{ $value('BANK_CLABE') }}"></div>
             <div class="field md:col-span-2"><label>Instrucciones de transferencia</label><textarea name="BANK_TRANSFER_INSTRUCTIONS" rows="4">{{ $value('BANK_TRANSFER_INSTRUCTIONS') }}</textarea></div>
+            @else
+                <div class="md:col-span-2 rounded-md border border-zinc-800 bg-zinc-950 p-4 text-sm text-zinc-500">
+                    Los datos bancarios solo pueden ser modificados por un super admin.
+                </div>
+            @endif
         </div>
     </section>
 
+    @if($isSuperAdmin)
     <section class="panel mt-6 p-5" x-show="tab === 'clip'" x-cloak>
-        <h2 class="text-xl font-black uppercase text-white">Clip Checkout</h2>
+        <h2 class="text-xl font-black uppercase text-white">Pago con Clip</h2>
+        <p class="mt-2 text-sm leading-6 text-zinc-500">Para el flujo normal solo necesitas la clave API y la clave secreta de Clip. El webhook es la URL que Clip usa para avisar cuando un pago se aprueba, rechaza, expira o falla.</p>
         <div class="mt-5 grid gap-4 md:grid-cols-2">
-            <div class="field"><label>Base URL</label><input name="CLIP_BASE_URL" value="{{ $value('CLIP_BASE_URL', 'https://api.payclip.com') }}" required></div>
-            <div class="field"><label>Tipo de autorizacion</label><select name="CLIP_AUTH_SCHEME"><option value="Basic" @selected($value('CLIP_AUTH_SCHEME', 'Basic') === 'Basic')>Basic</option><option value="Bearer" @selected($value('CLIP_AUTH_SCHEME') === 'Bearer')>Bearer</option></select></div>
+            <input type="hidden" name="CLIP_BASE_URL" value="{{ $value('CLIP_BASE_URL', 'https://api.payclip.com') }}">
+            <input type="hidden" name="CLIP_AUTH_SCHEME" value="{{ $value('CLIP_AUTH_SCHEME', 'Basic') ?: 'Basic' }}">
             <div class="field">
                 <label>Clave API de Clip</label>
                 <input name="CLIP_PUBLIC_KEY" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['CLIP_PUBLIC_KEY'] }}">
@@ -129,17 +147,7 @@
                 <label>Clave secreta de Clip</label>
                 <input name="CLIP_SECRET_KEY" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['CLIP_SECRET_KEY'] }}">
             </div>
-            <div class="field md:col-span-2">
-                <label>Token legacy / Bearer opcional</label>
-                <input name="CLIP_API_KEY" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['CLIP_API_KEY'] }}">
-            </div>
-            <div class="field md:col-span-2">
-                <label>Webhook secret</label>
-                <input name="CLIP_WEBHOOK_SECRET" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['CLIP_WEBHOOK_SECRET'] }}">
-            </div>
             <div class="field md:col-span-2"><label>Webhook URL</label><input name="CLIP_WEBHOOK_URL" value="{{ $value('CLIP_WEBHOOK_URL') }}"></div>
-            <div class="field"><label>Success URL</label><input name="CLIP_SUCCESS_URL" value="{{ $value('CLIP_SUCCESS_URL') }}"></div>
-            <div class="field"><label>Error URL</label><input name="CLIP_ERROR_URL" value="{{ $value('CLIP_ERROR_URL') }}"></div>
             <div class="md:col-span-2">
                 <button
                     type="button"
@@ -155,6 +163,28 @@
                     Usa este boton para validar las credenciales antes de guardar o publicar cambios.
                 </div>
             </div>
+            <details class="filter-details md:col-span-2 rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+                <summary class="filter-toggle">
+                    <span><i data-lucide="settings-2" class="h-4 w-4"></i>Opciones avanzadas de Clip</span>
+                    <i data-lucide="chevron-down" class="filter-chevron h-4 w-4 transition"></i>
+                </summary>
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                    <div class="field"><label>Base URL</label><input name="CLIP_BASE_URL_VISIBLE" value="{{ $value('CLIP_BASE_URL', 'https://api.payclip.com') }}" disabled></div>
+                    <div class="field"><label>Autorizacion</label><input value="{{ $value('CLIP_AUTH_SCHEME', 'Basic') ?: 'Basic' }}" disabled></div>
+                    <div class="field md:col-span-2">
+                        <label>Token legacy / Bearer opcional</label>
+                        <input name="CLIP_API_KEY" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['CLIP_API_KEY'] }}">
+                        <span class="text-xs text-zinc-500">Solo se usa si tu cuenta antigua de Clip no maneja clave API + secreta.</span>
+                    </div>
+                    <div class="field md:col-span-2">
+                        <label>Webhook secret</label>
+                        <input name="CLIP_WEBHOOK_SECRET" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['CLIP_WEBHOOK_SECRET'] }}">
+                        <span class="text-xs text-zinc-500">Sirve para validar firmas si Clip te entrega un secreto de webhook. Si no lo tienes, puede quedar vacio.</span>
+                    </div>
+                    <div class="field"><label>Success URL</label><input name="CLIP_SUCCESS_URL" value="{{ $value('CLIP_SUCCESS_URL') }}"></div>
+                    <div class="field"><label>Error URL</label><input name="CLIP_ERROR_URL" value="{{ $value('CLIP_ERROR_URL') }}"></div>
+                </div>
+            </details>
         </div>
     </section>
 
@@ -171,6 +201,7 @@
             <div class="field"><label>Nombre remitente</label><input name="MAIL_FROM_NAME" value="{{ $value('MAIL_FROM_NAME', '${APP_NAME}') }}"></div>
         </div>
     </section>
+    @endif
 
     <section class="panel mt-6 p-5" x-show="tab === 'seo'" x-cloak>
         <h2 class="text-xl font-black uppercase text-white">SEO y estado</h2>

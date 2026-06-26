@@ -10,11 +10,50 @@
     <div>
         <span class="badge">Producto</span>
         <h1 class="mt-3 text-3xl font-black uppercase text-white">{{ $product->exists ? 'Editar' : 'Crear' }}</h1>
+        @if($product->exists)
+            <p class="mt-2 text-sm text-zinc-400">
+                Estado actual:
+                <span class="{{ $product->active ? 'text-lime-300' : 'text-red-300' }} font-black">
+                    {{ $product->active ? 'Activo' : 'Inactivo' }}
+                </span>
+                @if(! $product->category?->active)
+                    <span class="text-amber-300">La categoria esta inactiva, por eso no se mostrara en la tienda aunque actives el producto.</span>
+                @endif
+            </p>
+        @endif
     </div>
     <a href="{{ route('admin.products.index') }}" class="btn-secondary">Volver</a>
 </div>
 
-<form method="POST" action="{{ $product->exists ? route('admin.products.update', $product) : route('admin.products.store') }}" enctype="multipart/form-data" class="mt-8 grid gap-6">
+@if (session('status'))
+    <div class="panel notice-success mt-6 p-4 text-sm">
+        <div class="flex items-start gap-3">
+            <i data-lucide="check-circle-2" class="mt-0.5 h-5 w-5 text-lime-300"></i>
+            <div>
+                <div class="font-black uppercase text-white">Resultado</div>
+                <div class="mt-1 text-zinc-200">{{ session('status') }}</div>
+            </div>
+        </div>
+    </div>
+@endif
+
+@if ($errors->any())
+    <div class="panel mt-6 border-red-500/40 bg-red-950/40 p-4 text-sm text-red-100">
+        <div class="flex items-start gap-3">
+            <i data-lucide="triangle-alert" class="mt-0.5 h-5 w-5 text-red-300"></i>
+            <div>
+                <div class="font-black uppercase text-white">No se pudo guardar</div>
+                <ul class="mt-2 grid gap-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    </div>
+@endif
+
+<form id="product-form" method="POST" action="{{ $product->exists ? route('admin.products.update', $product) : route('admin.products.store') }}" enctype="multipart/form-data" class="mt-8 grid gap-6">
     @csrf
     @if($product->exists) @method('PUT') @endif
     <div class="panel p-5">
@@ -30,8 +69,8 @@
             <div class="field md:col-span-2"><label>Descripcion</label><textarea name="description" rows="5" required>{{ old('description', $product->description) }}</textarea></div>
             <div class="field"><label>Meta title</label><input name="meta_title" value="{{ old('meta_title', $product->meta_title) }}"></div>
             <div class="field"><label>Meta description</label><input name="meta_description" value="{{ old('meta_description', $product->meta_description) }}"></div>
-            <label class="flex items-center gap-2"><input type="checkbox" name="featured" value="1" @checked(old('featured', $product->featured))> Destacado</label>
-            <label class="flex items-center gap-2"><input type="checkbox" name="active" value="1" @checked(old('active', $product->active ?? true))> Activo</label>
+            <label class="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-950 p-3"><input type="checkbox" name="featured" value="1" @checked(old('featured', $product->featured))> Destacado</label>
+            <label class="flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-950 p-3"><input type="checkbox" name="active" value="1" @checked(old('active', $product->active ?? true))> Activo y visible en tienda</label>
         </div>
     </div>
 
@@ -43,11 +82,14 @@
                 @foreach($product->images as $image)
                     <div class="rounded-md border border-zinc-800 p-2">
                         <img src="{{ $image->url() }}" alt="{{ $image->alt }}" class="aspect-square rounded object-cover">
-                        <form method="POST" action="{{ route('admin.products.images.destroy', [$product, $image->id]) }}" class="mt-2">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn-danger w-full px-2 py-1">Eliminar</button>
-                        </form>
+                        <button
+                            type="submit"
+                            form="delete-product-image-{{ $image->id }}"
+                            class="btn-danger mt-2 w-full px-2 py-1"
+                            onclick="return confirm('Se eliminara esta imagen del producto. Esta accion no se puede deshacer.');"
+                        >
+                            Eliminar
+                        </button>
                     </div>
                 @endforeach
             </div>
@@ -77,9 +119,18 @@
         </template>
     </div>
 
-    <button class="btn-primary w-fit min-w-48">
+    <button type="submit" class="btn-primary w-fit min-w-48">
         <i data-lucide="save" class="h-4 w-4"></i>
         Guardar
     </button>
 </form>
+
+@if($product->exists && $product->images->isNotEmpty())
+    @foreach($product->images as $image)
+        <form id="delete-product-image-{{ $image->id }}" method="POST" action="{{ route('admin.products.images.destroy', [$product, $image->id]) }}" class="hidden">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endforeach
+@endif
 @endsection

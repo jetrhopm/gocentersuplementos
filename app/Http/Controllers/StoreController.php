@@ -173,6 +173,16 @@ class StoreController extends Controller
         return view('orders.lookup', compact('order'));
     }
 
+    public function publicOrder(Order $order)
+    {
+        $order->load(['items', 'payment']);
+
+        return view('checkout.received', [
+            'order' => $order,
+            'bank' => config('services.bank_transfer'),
+        ]);
+    }
+
     public function sitemap()
     {
         $products = Product::active()->latest()->get();

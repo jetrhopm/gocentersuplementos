@@ -40,10 +40,16 @@
                     <td class="p-4">
                         <div class="flex gap-2">
                             <a href="{{ route('admin.products.edit', $product) }}" class="btn-secondary px-3"><i data-lucide="pencil" class="h-4 w-4"></i></a>
-                            <form method="POST" action="{{ route('admin.products.destroy', $product) }}">
+                            <form
+                                method="POST"
+                                action="{{ route('admin.products.destroy', $product) }}"
+                                onsubmit="return confirm(@js('Vas a desactivar el producto "'.$product->name.'". No se borrara de la base de datos, pero dejara de mostrarse en la tienda y no podra venderse mientras este inactivo. ¿Deseas continuar?'))"
+                            >
                                 @csrf
                                 @method('DELETE')
-                                <button class="btn-danger px-3"><i data-lucide="ban" class="h-4 w-4"></i></button>
+                                <button class="btn-danger px-3" type="submit" title="Desactivar producto" aria-label="Desactivar {{ $product->name }}">
+                                    <i data-lucide="ban" class="h-4 w-4"></i>
+                                </button>
                             </form>
                         </div>
                     </td>

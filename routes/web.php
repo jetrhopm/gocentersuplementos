@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ClipWebhookController;
+use App\Http\Controllers\PostalCodeController;
 use App\Http\Controllers\StoreController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,8 +21,13 @@ Route::get('/categoria/{category}', [StoreController::class, 'category'])->name(
 Route::get('/ofertas', [StoreController::class, 'offers'])->name('offers');
 Route::get('/productos/{product}', [StoreController::class, 'show'])->name('products.show');
 Route::get('/consultar-pedido', [StoreController::class, 'lookup'])->name('orders.lookup');
-Route::post('/consultar-pedido', [StoreController::class, 'lookupResult'])->name('orders.lookup.result');
+Route::post('/consultar-pedido', [StoreController::class, 'lookupResult'])->middleware('throttle:12,1')->name('orders.lookup.result');
+Route::get('/pedido/{order}/ver', [StoreController::class, 'publicOrder'])->middleware('signed')->name('orders.public.show');
 Route::get('/sitemap.xml', [StoreController::class, 'sitemap'])->name('sitemap');
+Route::get('/api/codigos-postales/{postalCode}', [PostalCodeController::class, 'show'])
+    ->whereNumber('postalCode')
+    ->middleware('throttle:60,1')
+    ->name('postal-codes.show');
 
 Route::view('/privacidad', 'store.policy', ['type' => 'privacy'])->name('policies.privacy');
 Route::view('/terminos', 'store.policy', ['type' => 'terms'])->name('policies.terms');
@@ -29,28 +36,33 @@ Route::view('/envios', 'store.policy', ['type' => 'shipping'])->name('policies.s
 
 Route::prefix('carrito')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/', [CartController::class, 'store'])->name('store');
-    Route::patch('/{key}', [CartController::class, 'update'])->name('update');
-    Route::delete('/{key}', [CartController::class, 'destroy'])->name('destroy');
-    Route::post('/cupon', [CartController::class, 'applyCoupon'])->name('coupon.apply');
-    Route::delete('/cupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
+    Route::post('/', [CartController::class, 'store'])->middleware('throttle:90,1')->name('store');
+    Route::post('/cupon', [CartController::class, 'applyCoupon'])->middleware('throttle:30,1')->name('coupon.apply');
+    Route::delete('/cupon', [CartController::class, 'removeCoupon'])->middleware('throttle:30,1')->name('coupon.remove');
+    Route::delete('/vaciar', [CartController::class, 'clear'])->middleware('throttle:20,1')->name('clear');
+    Route::patch('/{key}', [CartController::class, 'update'])->middleware('throttle:90,1')->name('update');
+    Route::delete('/{key}', [CartController::class, 'destroy'])->middleware('throttle:90,1')->name('destroy');
 });
 
 Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/', [CheckoutController::class, 'show'])->name('show');
-    Route::post('/', [CheckoutController::class, 'store'])->name('store');
-    Route::get('/pedido-recibido/{order}', [CheckoutController::class, 'received'])->name('received');
-    Route::post('/pedido-recibido/{order}/referencia', [CheckoutController::class, 'transferReference'])->name('transfer.reference');
+    Route::post('/', [CheckoutController::class, 'store'])->middleware('throttle:6,1')->name('store');
+    Route::get('/pedido-recibido/{order}', [CheckoutController::class, 'received'])->middleware('signed')->name('received');
+    Route::post('/pedido-recibido/{order}/referencia', [CheckoutController::class, 'transferReference'])->middleware(['signed', 'throttle:12,1'])->name('transfer.reference');
 });
 
 Route::get('/pago/clip/exito', [CheckoutController::class, 'clipSuccess'])->name('checkout.clip.success');
 Route::get('/pago/clip/error', [CheckoutController::class, 'clipError'])->name('checkout.clip.error');
-Route::post('/webhooks/clip', ClipWebhookController::class)->name('webhooks.clip');
+Route::get('/pago/clip/retorno/{order}', [CheckoutController::class, 'clipReturn'])->middleware(['signed', 'throttle:30,1'])->name('checkout.clip.return');
+Route::get('/pago/clip/cancelado/{order}', [CheckoutController::class, 'clipCancelled'])->middleware(['signed', 'throttle:30,1'])->name('checkout.clip.cancelled');
+Route::get('/pago/clip/webhook', ClipWebhookController::class)->name('webhooks.clip.legacy.status');
+Route::post('/pago/clip/webhook', ClipWebhookController::class)->middleware('throttle:120,1')->name('webhooks.clip.legacy');
+Route::post('/webhooks/clip', ClipWebhookController::class)->middleware('throttle:120,1')->name('webhooks.clip');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'login'])->name('login');
-        Route::post('/login', [AuthController::class, 'authenticate'])->name('authenticate');
+        Route::post('/login', [AuthController::class, 'authenticate'])->middleware('throttle:5,1')->name('authenticate');
     });
 
     Route::middleware(['auth', 'admin'])->group(function () {
@@ -63,6 +75,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('productos', AdminProductController::class)->names('products')->parameters(['productos' => 'product'])->except('show');
         Route::delete('/productos/{product}/imagenes/{image}', [AdminProductController::class, 'destroyImage'])->name('products.images.destroy');
         Route::resource('categorias', AdminCategoryController::class)->names('categories')->parameters(['categorias' => 'category'])->except('show');
+        Route::resource('cupones', AdminCouponController::class)->names('coupons')->parameters(['cupones' => 'coupon'])->except('show');
         Route::get('/pedidos/{order}/imprimir', [AdminOrderController::class, 'print'])->name('orders.print');
         Route::patch('/pedidos/{order}/estado', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
         Route::resource('pedidos', AdminOrderController::class)->names('orders')->parameters(['pedidos' => 'order'])->only(['index', 'show']);

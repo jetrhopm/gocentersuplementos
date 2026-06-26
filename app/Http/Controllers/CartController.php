@@ -56,18 +56,51 @@ class CartController extends Controller
         return back()->with('status', 'Producto retirado del carrito.');
     }
 
+    public function clear()
+    {
+        $this->cart->clear();
+
+        return redirect()->route('cart.index')->with('status', 'Carrito vaciado.');
+    }
+
     public function applyCoupon(Request $request)
     {
         $data = $request->validate(['coupon' => ['required', 'string', 'max:40']]);
         $this->cart->applyCoupon($data['coupon']);
 
+        if ($request->expectsJson()) {
+            return $this->cartJson('Cupon aplicado.');
+        }
+
         return back()->with('status', 'Cupon aplicado.');
     }
 
-    public function removeCoupon()
+    public function removeCoupon(Request $request)
     {
         $this->cart->forgetCoupon();
 
+        if ($request->expectsJson()) {
+            return $this->cartJson('Cupon retirado.');
+        }
+
         return back()->with('status', 'Cupon retirado.');
+    }
+
+    private function cartJson(string $message)
+    {
+        $totals = $this->cart->totals();
+
+        return response()->json([
+            'ok' => true,
+            'message' => $message,
+            'totals' => [
+                'subtotal' => number_format($totals['subtotal'], 2),
+                'shipping' => number_format($totals['shipping'], 2),
+                'discount' => number_format($totals['discount'], 2),
+                'total' => number_format($totals['total'], 2),
+                'count' => $this->cart->count(),
+            ],
+            'coupon_html' => view('partials.cart-coupon', ['totals' => $totals])->render(),
+        ]);
     }
 }

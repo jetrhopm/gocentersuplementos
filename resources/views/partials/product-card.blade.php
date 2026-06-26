@@ -26,7 +26,7 @@
             <span class="text-right text-xs text-zinc-500">{{ $product->stock > 0 ? $product->stock.' disp.' : 'Agotado' }}</span>
         </div>
         @if($product->activeVariants->isEmpty())
-            <form method="POST" action="{{ route('cart.store') }}">
+            <form method="POST" action="{{ route('cart.store') }}" data-cart-form>
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                 <input type="hidden" name="quantity" value="1">

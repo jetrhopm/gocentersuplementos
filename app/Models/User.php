@@ -13,6 +13,9 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ROLE_SUPER_ADMIN = 'super_admin';
+    public const ROLE_ADMIN = 'admin';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -22,8 +25,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
-        'active',
     ];
 
     /**
@@ -52,6 +53,11 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->active && $this->role === 'admin';
+        return $this->active && in_array($this->role, [self::ROLE_SUPER_ADMIN, self::ROLE_ADMIN], true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->active && $this->role === self::ROLE_SUPER_ADMIN;
     }
 }

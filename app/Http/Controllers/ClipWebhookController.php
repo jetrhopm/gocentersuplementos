@@ -13,6 +13,14 @@ class ClipWebhookController extends Controller
 {
     public function __invoke(Request $request, ClipService $clip, OrderService $orders)
     {
+        if ($request->isMethod('GET')) {
+            return response()->json([
+                'ok' => true,
+                'provider' => 'clip',
+                'message' => 'Webhook activo.',
+            ]);
+        }
+
         $raw = $request->getContent();
         $payload = $request->json()->all() ?: $request->all();
         $hash = hash('sha256', $raw ?: json_encode($payload));

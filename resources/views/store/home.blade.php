@@ -7,12 +7,14 @@
     $storeName = config('app.name', 'Go Center Suplementos');
     $goCenterBanners = collect([
         [
-            'kicker' => 'Go Center Suplementos',
-            'title' => 'Packs Inlabs listos para entrenar',
-            'copy' => 'Proteinas, creatinas y paquetes promocionales con la imagen real de Go Center.',
-            'meta' => 'GO CENTER SUPLEMENTOS',
-            'cta' => 'Ver productos',
-            'href' => route('products.index', ['category' => 'packs-gocenter']),
+            'kicker' => 'Los Mochis y Guasave',
+            'title' => $storeName,
+            'copy' => 'Suplementos deportivos, proteinas, creatinas y paquetes listos para entrenar con disciplina. Compra en linea con envio a todo Mexico y atencion directa por WhatsApp.',
+            'meta' => 'Envio a todo Mexico',
+            'cta' => 'Comprar ahora',
+            'href' => route('products.index'),
+            'cta2' => 'Ver packs',
+            'href2' => route('products.index', ['category' => 'packs-gocenter']),
             'image' => asset('assets/gocenter/banner.jpg'),
         ],
     ])->merge($heroProducts->map(fn ($product) => [
@@ -29,7 +31,8 @@
         'pre-entrenos' => 'https://images.unsplash.com/photo-1549476464-37392f717541?auto=format&fit=crop&w=900&q=80',
         'creatinas' => 'https://images.unsplash.com/photo-1622484212850-eb596d769edc?auto=format&fit=crop&w=900&q=80',
         'accesorios-deportivos' => 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80',
-        'packs-gocenter' => asset('assets/gocenter/products/pack-isolate-inlabs-3790.jpg'),
+        'packs-gocenter' => asset('assets/gocenter/category-packs-gocenter.jpg'),
+        'mochilas' => asset('assets/wolfpak/mochilas/category-mochilas.jpg'),
         'ropa-deportiva-hombre' => 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80',
         'ropa-deportiva-mujer' => 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80',
         'ofertas' => 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80',
@@ -43,23 +46,7 @@
         <div class="absolute inset-0 bg-[linear-gradient(90deg,#050505_0%,rgba(5,5,5,.94)_38%,rgba(5,5,5,.44)_100%)]"></div>
     </div>
 
-    <div class="container-page relative grid min-h-[78vh] items-center gap-10 py-14 lg:grid-cols-[1.05fr_.95fr] lg:py-20">
-        <div>
-            <span class="badge">Los Mochis y Guasave</span>
-            <h1 class="hero-title mt-5 font-black text-white">{{ $storeName }}</h1>
-            <p class="hero-copy mt-6 max-w-2xl">Suplementos deportivos, proteinas, creatinas y paquetes listos para entrenar con disciplina. Compra en linea con envio a todo Mexico y atencion directa por WhatsApp.</p>
-            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="{{ route('products.index') }}" class="btn-primary min-h-12">
-                    <i data-lucide="shopping-bag" class="h-4 w-4"></i>
-                    Comprar ahora
-                </a>
-                <a href="{{ route('products.index', ['category' => 'packs-gocenter']) }}" class="btn-secondary min-h-12">
-                    <i data-lucide="badge-percent" class="h-4 w-4"></i>
-                    Ver packs
-                </a>
-            </div>
-        </div>
-
+    <div class="container-page relative py-10 lg:py-14">
         <div class="store-carousel" data-carousel data-carousel-interval="6500">
             @foreach($goCenterBanners as $banner)
                 <article
@@ -81,10 +68,18 @@
                                 </span>
                             </div>
                         </div>
-                        <a href="{{ $banner['href'] }}" class="btn-primary min-h-12 justify-self-start">
-                            {{ $banner['cta'] }}
-                            <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                        </a>
+                        <div class="flex flex-wrap gap-3">
+                            <a href="{{ $banner['href'] }}" class="btn-primary min-h-12">
+                                {{ $banner['cta'] }}
+                                <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                            </a>
+                            @if(! empty($banner['cta2']))
+                                <a href="{{ $banner['href2'] }}" class="btn-secondary min-h-12">
+                                    <i data-lucide="badge-percent" class="h-4 w-4"></i>
+                                    {{ $banner['cta2'] }}
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 </article>
             @endforeach
@@ -127,23 +122,22 @@
 
 @if($carouselProducts->isNotEmpty())
     <section class="container-page py-14">
-        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-                <span class="badge">Paquetes agregados</span>
-                <h2 class="section-heading mt-3">Carrusel Go Center</h2>
-                <p class="mt-3 max-w-2xl text-sm leading-6 text-zinc-400">Productos seleccionados desde configuracion para destacar promociones, combos y banners recientes.</p>
-            </div>
-            <div class="flex gap-2">
-                <button type="button" class="store-banner-control" data-scroll-carousel-prev="home-products" aria-label="Producto anterior">
+        <div class="product-carousel-tools" aria-label="Controles del carrusel de productos">
+            <span class="product-carousel-hint">
+                <i data-lucide="move-horizontal" class="h-4 w-4"></i>
+                Desliza
+            </span>
+            <div class="product-carousel-arrows">
+                <button type="button" class="product-carousel-control" data-scroll-carousel-prev="home-products" aria-label="Producto anterior">
                     <i data-lucide="chevron-left" class="h-5 w-5"></i>
                 </button>
-                <button type="button" class="store-banner-control" data-scroll-carousel-next="home-products" aria-label="Producto siguiente">
+                <button type="button" class="product-carousel-control" data-scroll-carousel-next="home-products" aria-label="Producto siguiente">
                     <i data-lucide="chevron-right" class="h-5 w-5"></i>
                 </button>
             </div>
         </div>
 
-        <div class="product-carousel mt-8" id="home-products" data-scroll-carousel>
+        <div class="product-carousel mt-8" id="home-products" data-scroll-carousel data-scroll-carousel-interval="4500">
             @foreach($carouselProducts as $product)
                 <a href="{{ route('products.show', $product) }}" class="product-carousel-card">
                     <span class="product-carousel-image">

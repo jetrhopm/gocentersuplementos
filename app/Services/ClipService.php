@@ -6,6 +6,7 @@ use App\Models\Order;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -15,20 +16,23 @@ class ClipService
     {
         $description = Str::limit('Pedido '.$order->folio.' en '.config('app.name'), 127, '');
         $webhookUrl = config('services.clip.webhook_url') ?: route('webhooks.clip');
+        $receivedUrl = URL::signedRoute('checkout.received', $order);
+        $returnUrl = URL::signedRoute('checkout.clip.return', ['order' => $order, 'folio' => $order->folio]);
+        $cancelledUrl = URL::signedRoute('checkout.clip.cancelled', ['order' => $order, 'folio' => $order->folio]);
 
         $payload = [
             'amount' => (int) round((float) $order->total),
             'currency' => 'MXN',
             'purchase_description' => $description,
             'redirection_url' => [
-                'success' => $this->returnUrl('success_url', route('checkout.clip.success'), $order->folio),
-                'error' => $this->returnUrl('error_url', route('checkout.clip.error'), $order->folio),
-                'default' => route('checkout.received', $order),
+                'success' => $this->returnUrl('success_url', $returnUrl, $order->folio),
+                'error' => $this->returnUrl('error_url', $cancelledUrl, $order->folio),
+                'default' => $receivedUrl,
             ],
             'override_settings' => [
                 'locale' => 'es-MX',
                 'tip_enabled' => false,
-                'merchant_redirect_url' => route('checkout.received', $order),
+                'merchant_redirect_url' => $receivedUrl,
             ],
             'metadata' => [
                 'external_reference' => $order->folio,
@@ -73,7 +77,7 @@ class ClipService
         $secret = config('services.clip.webhook_secret');
 
         if (! $secret) {
-            return true;
+            return ! app()->environment('production');
         }
 
         $signature = $request->headers->get('x-clip-signature')
@@ -233,7 +237,12 @@ class ClipService
 
     private function returnUrl(string $configKey, string $fallback, string $folio): string
     {
-        $url = config('services.clip.'.$configKey) ?: $fallback;
+        $url = config('services.clip.'.$configKey);
+
+        if (! $url) {
+            return $fallback;
+        }
+
         $separator = str_contains($url, '?') ? '&' : '?';
 
         return $url.$separator.'folio='.urlencode($folio);

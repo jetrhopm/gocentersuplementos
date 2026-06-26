@@ -41,6 +41,7 @@ return [
         'max_upload_kb' => (int) env('STORE_MAX_UPLOAD_KB', 2048),
         'whatsapp' => env('STORE_WHATSAPP'),
         'theme' => env('STORE_THEME', 'volt'),
+        'header_show_title' => filter_var(env('STORE_HEADER_SHOW_TITLE', false), FILTER_VALIDATE_BOOL),
         'meta_description' => env('STORE_META_DESCRIPTION', 'Tienda fitness de proteinas, suplementos y ropa deportiva.'),
         'maintenance_mode' => filter_var(env('STORE_MAINTENANCE_MODE', false), FILTER_VALIDATE_BOOL),
         'hero_carousel_slugs' => array_values(array_filter(array_map('trim', explode(',', env('STORE_HERO_CAROUSEL_SLUGS', 'combo-entrenamiento,super-pack,mega-combo'))))),

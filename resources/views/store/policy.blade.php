@@ -58,7 +58,7 @@
                 </div>
                 <div>
                     <h2 class="text-xl font-black uppercase text-white">Pagos</h2>
-                    <p class="mt-3">Aceptamos transferencia bancaria y Clip Checkout. En transferencia, el pedido queda pendiente hasta validar el pago. En Clip, la confirmacion depende de la respuesta del proveedor de pago.</p>
+                    <p class="mt-3">Aceptamos transferencia bancaria y pago con Clip. En transferencia, el pedido queda pendiente hasta validar el pago. En Clip, la confirmacion depende de la respuesta del proveedor de pago.</p>
                 </div>
                 <div>
                     <h2 class="text-xl font-black uppercase text-white">Envio y recepcion</h2>
