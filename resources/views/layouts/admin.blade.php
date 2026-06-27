@@ -32,6 +32,9 @@
                 <a class="admin-nav-link" href="{{ route('admin.categories.index') }}">Categorias</a>
                 <a class="admin-nav-link" href="{{ route('admin.coupons.index') }}">Cupones</a>
                 <a class="admin-nav-link" href="{{ route('admin.orders.index') }}">Pedidos</a>
+                @if(auth()->user()?->isSuperAdmin())
+                    <a class="admin-nav-link" href="{{ route('admin.users.index') }}">Administradores</a>
+                @endif
                 <a class="admin-nav-link" href="{{ route('admin.settings.index') }}">Configuracion</a>
             </nav>
             <div class="flex items-center gap-2">
@@ -74,6 +77,12 @@
                     <i data-lucide="clipboard-list" class="h-4 w-4"></i>
                     Pedidos
                 </a>
+                @if(auth()->user()?->isSuperAdmin())
+                    <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.users.index') }}">
+                        <i data-lucide="users-round" class="h-4 w-4"></i>
+                        Administradores
+                    </a>
+                @endif
                 <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.settings.index') }}">
                     <i data-lucide="settings" class="h-4 w-4"></i>
                     Configuracion

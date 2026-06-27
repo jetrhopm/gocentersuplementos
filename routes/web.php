@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ClipWebhookController;
@@ -76,6 +77,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/productos/{product}/imagenes/{image}', [AdminProductController::class, 'destroyImage'])->name('products.images.destroy');
         Route::resource('categorias', AdminCategoryController::class)->names('categories')->parameters(['categorias' => 'category'])->except('show');
         Route::resource('cupones', AdminCouponController::class)->names('coupons')->parameters(['cupones' => 'coupon'])->except('show');
+        Route::resource('administradores', AdminUserController::class)->names('users')->parameters(['administradores' => 'user'])->except('show');
         Route::get('/pedidos/{order}/imprimir', [AdminOrderController::class, 'print'])->name('orders.print');
         Route::patch('/pedidos/{order}/estado', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
         Route::resource('pedidos', AdminOrderController::class)->names('orders')->parameters(['pedidos' => 'order'])->only(['index', 'show']);

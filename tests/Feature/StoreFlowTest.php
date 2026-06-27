@@ -237,6 +237,38 @@ class StoreFlowTest extends TestCase
         ]);
     }
 
+    public function test_super_admin_can_create_admin_user(): void
+    {
+        $superAdmin = User::where('email', 'superadmin@local.test')->firstOrFail();
+
+        $this->actingAs($superAdmin)
+            ->post(route('admin.users.store'), [
+                'name' => 'Editor Catalogo',
+                'email' => 'editor@example.com',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'role' => User::ROLE_ADMIN,
+                'active' => '1',
+            ])
+            ->assertRedirect(route('admin.users.index'))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'editor@example.com',
+            'role' => User::ROLE_ADMIN,
+            'active' => true,
+        ]);
+    }
+
+    public function test_limited_admin_cannot_manage_admin_users(): void
+    {
+        $admin = User::where('email', 'admin@local.test')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.index'))
+            ->assertForbidden();
+    }
+
     public function test_admin_can_activate_inactive_product(): void
     {
         $admin = User::where('email', 'admin@local.test')->firstOrFail();
