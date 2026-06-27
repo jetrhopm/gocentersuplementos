@@ -329,7 +329,7 @@ INSERT INTO coupons (id, code, type, value, minimum_total, max_uses, uses, start
 INSERT INTO coupons (id, code, type, value, minimum_total, max_uses, uses, starts_at, expires_at, active, created_at, updated_at) VALUES ('2', 'BIENVENIDA10', 'percent', '10.00', '0.00', NULL, '2', NULL, NULL, '1', '2026-06-25 04:37:01', '2026-06-25 05:10:52');
 
 -- Datos de settings
-INSERT INTO settings (id, key, value, type, is_public, created_at, updated_at) VALUES ('1', 'maintenance_mode', '0', 'string', '0', '2026-06-24 07:39:51', '2026-06-24 07:39:51');
-INSERT INTO settings (id, key, value, type, is_public, created_at, updated_at) VALUES ('2', 'store_email', 'ventas@local.test', 'string', '0', '2026-06-24 07:39:51', '2026-06-24 07:39:51');
+INSERT INTO `settings` (`id`, `key`, `value`, `type`, `is_public`, `created_at`, `updated_at`) VALUES ('1', 'maintenance_mode', '0', 'string', '0', '2026-06-24 07:39:51', '2026-06-24 07:39:51');
+INSERT INTO `settings` (`id`, `key`, `value`, `type`, `is_public`, `created_at`, `updated_at`) VALUES ('2', 'store_email', 'ventas@local.test', 'string', '0', '2026-06-24 07:39:51', '2026-06-24 07:39:51');
 
 SET FOREIGN_KEY_CHECKS=1;
