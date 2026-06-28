@@ -50,6 +50,18 @@ class PostalCodeController extends Controller
             return null;
         }
 
-        return mb_convert_encoding($value, 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
+        if (preg_match('//u', $value) === 1) {
+            return $value;
+        }
+
+        if (function_exists('iconv')) {
+            $converted = iconv('Windows-1252', 'UTF-8//IGNORE', $value);
+
+            if ($converted !== false) {
+                return $converted;
+            }
+        }
+
+        return preg_replace('/[^\x20-\x7E]/', '', $value);
     }
 }
