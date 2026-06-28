@@ -33,14 +33,23 @@ class PostalCodeController extends Controller
         return response()->json([
             'ok' => true,
             'postal_code' => $postalCode,
-            'state' => $first->state,
-            'city' => $first->city ?: $first->municipality,
-            'municipality' => $first->municipality,
+            'state' => $this->safeText($first->state),
+            'city' => $this->safeText($first->city ?: $first->municipality),
+            'municipality' => $this->safeText($first->municipality),
             'settlements' => $rows->map(fn (PostalCode $row) => [
-                'name' => $row->settlement,
-                'type' => $row->settlement_type,
-                'zone' => $row->zone,
+                'name' => $this->safeText($row->settlement),
+                'type' => $this->safeText($row->settlement_type),
+                'zone' => $this->safeText($row->zone),
             ])->values(),
-        ]);
+        ], 200, [], JSON_INVALID_UTF8_SUBSTITUTE);
+    }
+
+    private function safeText(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return mb_convert_encoding($value, 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
     }
 }
