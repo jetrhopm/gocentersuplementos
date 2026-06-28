@@ -677,7 +677,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const search = normalizeText(neighborhoodInput.value);
             const matches = neighborhoodSuggestions
                 .filter((settlement) => ! search || normalizeText(settlement.name).includes(search))
-                .slice(0, 12);
+                .sort((a, b) => {
+                    if (! search) {
+                        return normalizeText(a.name).localeCompare(normalizeText(b.name));
+                    }
+
+                    const aName = normalizeText(a.name);
+                    const bName = normalizeText(b.name);
+                    const aStarts = aName.startsWith(search);
+                    const bStarts = bName.startsWith(search);
+
+                    if (aStarts !== bStarts) {
+                        return aStarts ? -1 : 1;
+                    }
+
+                    return aName.localeCompare(bName);
+                });
 
             neighborhoodOptions.innerHTML = '';
 
