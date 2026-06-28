@@ -905,13 +905,16 @@ document.addEventListener('DOMContentLoaded', () => {
             result.className = 'mt-3 rounded-md border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-300';
 
             try {
+                const payload = new FormData(form);
+                payload.delete('_method');
+
                 const response = await fetch(button.dataset.clipTest, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': form.querySelector('input[name="_token"]')?.value || '',
                         'Accept': 'application/json',
                     },
-                    body: new FormData(form),
+                    body: payload,
                 });
                 const data = await response.json();
                 const ok = response.ok && data.ok;
