@@ -46,12 +46,20 @@ class CartController extends Controller
 
         $this->cart->update($key, (int) $data['quantity']);
 
+        if ($request->expectsJson()) {
+            return $this->cartJson((int) $data['quantity'] > 0 ? 'Carrito actualizado.' : 'Producto retirado del carrito.');
+        }
+
         return back()->with('status', 'Carrito actualizado.');
     }
 
-    public function destroy(string $key)
+    public function destroy(Request $request, string $key)
     {
         $this->cart->remove($key);
+
+        if ($request->expectsJson()) {
+            return $this->cartJson('Producto retirado del carrito.');
+        }
 
         return back()->with('status', 'Producto retirado del carrito.');
     }

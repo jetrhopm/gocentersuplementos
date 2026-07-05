@@ -30,6 +30,7 @@
     textarea,
     summary {
         touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
 
     :is(a, button, [role="button"], summary):focus-visible {

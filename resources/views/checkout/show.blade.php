@@ -20,7 +20,7 @@
 
 <div class="container-page pt-8">
     <div class="promo-banner">
-        <img src="{{ asset('assets/gocenter/banner.jpg') }}" alt="Go Center Suplementos" loading="lazy">
+        <img src="{{ asset('assets/gocenter/banner.jpg') }}" alt="Go Center Suplementos" width="1280" height="720" loading="lazy" decoding="async">
     </div>
 </div>
 
@@ -209,7 +209,7 @@
                             <button type="button" class="neighborhood-toggle" data-neighborhood-toggle aria-label="Mostrar colonias">
                                 <i data-lucide="chevron-down" class="h-4 w-4"></i>
                             </button>
-                            <div class="neighborhood-options" id="neighborhood-options" data-neighborhood-options hidden></div>
+                            <div class="neighborhood-options" id="neighborhood-options" role="listbox" aria-label="Colonias sugeridas" data-neighborhood-options hidden></div>
                         </div>
                     </div>
                     <div class="field">
@@ -325,7 +325,7 @@
             <div class="mt-5 grid gap-4">
                 @foreach($items as $item)
                     <div class="interactive-tile flex gap-3 p-3">
-                        <img src="{{ $item['product']->displayImage() }}" alt="{{ $item['product']->name }}" class="h-16 w-16 rounded-md object-cover">
+                        <img src="{{ $item['product']->displayImage() }}" alt="{{ $item['product']->name }}" width="64" height="64" loading="lazy" decoding="async" class="h-16 w-16 rounded-md object-cover">
                         <div class="min-w-0 flex-1">
                             <div class="truncate text-sm font-bold text-white">{{ $item['product']->name }}</div>
                             <div class="text-xs text-zinc-500">{{ $item['quantity'] }} x ${{ number_format($item['unit_price'], 2) }}</div>

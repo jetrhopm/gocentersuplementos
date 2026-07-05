@@ -354,6 +354,76 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Actualizar/eliminar lineas del carrito sin recargar ---
+    const refreshCartEmptyState = () => {
+        const lines = document.querySelector('[data-cart-lines]');
+        if (! lines || lines.querySelector('[data-cart-line]')) {
+            return;
+        }
+
+        lines.innerHTML = '<div class="panel p-8 text-zinc-400">Tu carrito esta vacio.</div>';
+        document.querySelector('[data-cart-clear]')?.remove();
+
+        const pay = document.querySelector('[data-cart-pay]');
+        if (pay) {
+            pay.classList.add('pointer-events-none', 'opacity-50');
+            pay.setAttribute('aria-disabled', 'true');
+            pay.setAttribute('tabindex', '-1');
+        }
+    };
+
+    document.addEventListener('submit', async (event) => {
+        const form = event.target.closest('[data-cart-line-form]');
+        if (! form) {
+            return;
+        }
+        event.preventDefault();
+        const button = form.querySelector('button[type="submit"], button:not([type])');
+        if (button) {
+            button.disabled = true;
+        }
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': form.querySelector('input[name="_token"]')?.value || '',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: new FormData(form),
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (response.ok && data.ok) {
+                updateCartTotals(data.totals);
+                const area = document.querySelector('[data-coupon-area]');
+                if (area && data.coupon_html) {
+                    area.innerHTML = data.coupon_html;
+                    createIcons({ icons });
+                }
+
+                const quantityValue = Number(form.querySelector('input[name="quantity"]')?.value ?? 1);
+                if (form.hasAttribute('data-cart-line-remove') || quantityValue < 1) {
+                    form.closest('[data-cart-line]')?.remove();
+                    refreshCartEmptyState();
+                }
+
+                showToast(data.message || 'Carrito actualizado.', 'success');
+            } else {
+                const message = data.message
+                    || (data.errors ? Object.values(data.errors)[0][0] : 'No se pudo actualizar el carrito.');
+                showToast(message, 'error');
+            }
+        } catch (error) {
+            showToast('No se pudo conectar. Intenta de nuevo.', 'error');
+        } finally {
+            if (button) {
+                button.disabled = false;
+            }
+        }
+    });
+
     document.querySelectorAll('[data-checkout-wizard]').forEach((form) => {
         const steps = Array.from(form.querySelectorAll('[data-checkout-step]'));
         const stage = form.querySelector('.checkout-wizard-stage');
@@ -710,6 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const option = document.createElement('button');
                 option.type = 'button';
                 option.className = 'neighborhood-option';
+                option.setAttribute('role', 'option');
                 option.dataset.value = settlement.name;
                 const name = document.createElement('span');
                 name.textContent = settlement.name;
@@ -821,6 +892,51 @@ document.addEventListener('DOMContentLoaded', () => {
         neighborhoodToggle?.addEventListener('click', () => {
             neighborhoodInput?.focus({ preventScroll: true });
             renderNeighborhoodOptions(true);
+        });
+
+        // Navegacion con teclado en el combobox de colonias.
+        const neighborhoodOptionButtons = () => Array.from(neighborhoodOptions?.querySelectorAll('.neighborhood-option') || []);
+
+        const closeNeighborhoodOptions = (refocusInput = true) => {
+            if (neighborhoodOptions) {
+                neighborhoodOptions.hidden = true;
+            }
+            neighborhoodInput?.setAttribute('aria-expanded', 'false');
+            if (refocusInput) {
+                neighborhoodInput?.focus({ preventScroll: true });
+            }
+        };
+
+        neighborhoodInput?.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                renderNeighborhoodOptions(true);
+                neighborhoodOptionButtons()[0]?.focus();
+            }
+            if (event.key === 'Escape' && neighborhoodOptions && ! neighborhoodOptions.hidden) {
+                event.stopPropagation();
+                closeNeighborhoodOptions();
+            }
+        });
+
+        neighborhoodOptions?.addEventListener('keydown', (event) => {
+            const options = neighborhoodOptionButtons();
+            const index = options.indexOf(document.activeElement);
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                options[Math.min(index + 1, options.length - 1)]?.focus();
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                if (index <= 0) {
+                    closeNeighborhoodOptions();
+                } else {
+                    options[index - 1]?.focus();
+                }
+            } else if (event.key === 'Escape') {
+                event.stopPropagation();
+                closeNeighborhoodOptions();
+            }
         });
 
         document.addEventListener('click', (event) => {

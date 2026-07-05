@@ -13,7 +13,7 @@
 
 <div class="container-page pt-8">
     <a href="{{ route('products.index', ['category' => 'packs-gocenter']) }}" class="promo-banner" aria-label="Ver packs Go Center">
-        <img src="{{ asset('assets/gocenter/banner.jpg') }}" alt="Go Center Suplementos" loading="lazy">
+        <img src="{{ asset('assets/gocenter/banner.jpg') }}" alt="Go Center Suplementos" width="1280" height="720" loading="lazy" decoding="async">
     </a>
 </div>
 
@@ -23,7 +23,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <h2 class="text-lg font-black uppercase text-white">Productos en el carrito</h2>
                 @if($items->isNotEmpty())
-                    <form method="POST" action="{{ route('cart.clear') }}" onsubmit="return confirm('Se quitaran todos los productos del carrito. ¿Quieres continuar?');">
+                    <form method="POST" action="{{ route('cart.clear') }}" data-cart-clear onsubmit="return confirm('Se quitaran todos los productos del carrito. ¿Quieres continuar?');">
                         @csrf
                         @method('DELETE')
                         <button class="btn-danger btn-clear-cart" type="submit">
@@ -33,33 +33,35 @@
                     </form>
                 @endif
             </div>
-            @forelse($items as $item)
-                <div class="panel flex flex-wrap items-center gap-3 p-3">
-                    <img src="{{ $item['product']->displayImage() }}" alt="{{ $item['product']->name }}" class="h-16 w-16 shrink-0 rounded-md object-cover">
-                    <div class="min-w-0 flex-1">
-                        <a href="{{ route('products.show', $item['product']) }}" class="accent-link block truncate text-sm font-bold text-white">{{ $item['product']->name }}</a>
-                        @if($item['variant_label'])
-                            <div class="truncate text-xs text-zinc-400">{{ $item['variant_label'] }}</div>
-                        @endif
-                        <div class="price-text mt-1 text-sm">${{ number_format($item['unit_price'], 2) }}</div>
+            <div class="grid gap-3" data-cart-lines>
+                @forelse($items as $item)
+                    <div class="panel flex flex-wrap items-center gap-3 p-3" data-cart-line>
+                        <img src="{{ $item['product']->displayImage() }}" alt="{{ $item['product']->name }}" width="64" height="64" loading="lazy" decoding="async" class="h-16 w-16 shrink-0 rounded-md object-cover">
+                        <div class="min-w-0 flex-1">
+                            <a href="{{ route('products.show', $item['product']) }}" class="accent-link block truncate text-sm font-bold text-white">{{ $item['product']->name }}</a>
+                            @if($item['variant_label'])
+                                <div class="truncate text-xs text-zinc-400">{{ $item['variant_label'] }}</div>
+                            @endif
+                            <div class="price-text mt-1 text-sm">${{ number_format($item['unit_price'], 2) }}</div>
+                        </div>
+                        <div class="flex w-full shrink-0 items-center justify-end gap-1.5 sm:w-auto">
+                            <form method="POST" action="{{ route('cart.update', $item['key']) }}" class="flex items-center gap-1.5" data-cart-line-form>
+                                @csrf
+                                @method('PATCH')
+                                <input class="w-14 text-center" type="number" name="quantity" value="{{ $item['quantity'] }}" min="0" max="{{ $item['stock'] }}" inputmode="numeric" aria-label="Cantidad de {{ $item['product']->name }}">
+                                <button class="btn-secondary px-2.5" aria-label="Actualizar"><i data-lucide="refresh-cw" class="h-4 w-4"></i></button>
+                            </form>
+                            <form method="POST" action="{{ route('cart.destroy', $item['key']) }}" data-cart-line-form data-cart-line-remove>
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn-danger px-2.5" aria-label="Quitar {{ $item['product']->name }}"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="flex w-full shrink-0 items-center justify-end gap-1.5 sm:w-auto">
-                        <form method="POST" action="{{ route('cart.update', $item['key']) }}" class="flex items-center gap-1.5">
-                            @csrf
-                            @method('PATCH')
-                            <input class="w-14 text-center" type="number" name="quantity" value="{{ $item['quantity'] }}" min="0" max="{{ $item['stock'] }}" inputmode="numeric" aria-label="Cantidad de {{ $item['product']->name }}">
-                            <button class="btn-secondary px-2.5" aria-label="Actualizar"><i data-lucide="refresh-cw" class="h-4 w-4"></i></button>
-                        </form>
-                        <form method="POST" action="{{ route('cart.destroy', $item['key']) }}">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn-danger px-2.5" aria-label="Quitar"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
-                        </form>
-                    </div>
-                </div>
-            @empty
-                <div class="panel p-8 text-zinc-400">Tu carrito esta vacio.</div>
-            @endforelse
+                @empty
+                    <div class="panel p-8 text-zinc-400">Tu carrito esta vacio.</div>
+                @endforelse
+            </div>
         </div>
         <aside class="panel h-fit overflow-hidden p-5">
             @include('partials.gocenter-brand-card', [
@@ -80,6 +82,7 @@
                 href="{{ route('checkout.show') }}"
                 class="btn-primary mt-6 w-full @if($items->isEmpty()) pointer-events-none opacity-50 @endif"
                 @if($items->isEmpty()) aria-disabled="true" tabindex="-1" @endif
+                data-cart-pay
             >
                 <i data-lucide="credit-card" class="h-4 w-4"></i>
                 Ir a pagar

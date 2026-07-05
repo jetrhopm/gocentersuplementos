@@ -22,6 +22,8 @@
     @endif
     <title>@yield('title', config('app.name'))</title>
     <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800,900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/jpeg" href="{{ asset('assets/gocenter/logo.jpg') }}">
     <link rel="apple-touch-icon" href="{{ asset('assets/gocenter/logo.jpg') }}">
     @if(($marketing['google_ads_enabled'] ?? false) && filled($marketing['google_tag_id'] ?? null))
@@ -85,7 +87,7 @@
                     </span>
                 @else
                     <span class="site-brand-banner">
-                        <img src="{{ asset('assets/gocenter/header-banner.jpg') }}" alt="{{ $storeName }}">
+                        <img src="{{ asset('assets/gocenter/header-banner.jpg') }}" alt="{{ $storeName }}" width="1280" height="426" fetchpriority="high">
                     </span>
                 @endif
             </a>

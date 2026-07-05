@@ -14,7 +14,7 @@
                 zoomOpen: false,
             }"
         >
-            <button type="button" class="product-main-image hero-panel overflow-hidden" x-on:click="zoomOpen = true" aria-label="Ampliar imagen del producto">
+            <button type="button" class="product-main-image hero-panel overflow-hidden" x-ref="zoomTrigger" x-on:click="zoomOpen = true; $nextTick(() => $refs.zoomClose.focus())" aria-label="Ampliar imagen del producto">
                 <img :src="selected" :alt="selectedAlt" class="w-full object-contain">
                 <span class="product-zoom-hint">
                     <i data-lucide="zoom-in" class="h-4 w-4"></i>
@@ -37,8 +37,19 @@
                 </div>
             @endif
 
-            <div class="product-zoom-modal" x-cloak x-show="zoomOpen" x-transition.opacity x-on:click.self="zoomOpen = false" x-on:keydown.escape.window="zoomOpen = false" role="dialog" aria-modal="true" aria-label="Imagen ampliada">
-                <button type="button" class="product-zoom-close" x-on:click="zoomOpen = false" aria-label="Cerrar imagen ampliada">
+            <div
+                class="product-zoom-modal"
+                x-cloak
+                x-show="zoomOpen"
+                x-transition.opacity
+                x-on:click.self="zoomOpen = false; $refs.zoomTrigger.focus()"
+                x-on:keydown.escape.window="if (zoomOpen) { zoomOpen = false; $refs.zoomTrigger.focus() }"
+                x-on:keydown.tab.prevent="$refs.zoomClose.focus()"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Imagen ampliada"
+            >
+                <button type="button" class="product-zoom-close" x-ref="zoomClose" x-on:click="zoomOpen = false; $refs.zoomTrigger.focus()" aria-label="Cerrar imagen ampliada">
                     <i data-lucide="x" class="h-5 w-5"></i>
                 </button>
                 <img :src="selected" :alt="selectedAlt">
