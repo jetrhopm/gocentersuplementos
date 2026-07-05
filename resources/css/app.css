@@ -313,45 +313,49 @@
 
     .whatsapp-float {
         position: relative;
-        border: 1px solid rgba(37, 211, 102, .78);
+        isolation: isolate;
+        aspect-ratio: 1;
+        border: 1px solid rgba(255, 255, 255, .18);
         background:
-            radial-gradient(circle at 30% 20%, rgba(255, 255, 255, .34), transparent 28%),
-            linear-gradient(135deg, #35e575, #128c4a);
+            radial-gradient(circle at 30% 22%, rgba(255, 255, 255, .4), transparent 28%),
+            linear-gradient(145deg, #25d366 0%, #16a34a 54%, #075e54 100%);
         color: #ffffff;
         box-shadow:
-            0 0 0 6px rgba(37, 211, 102, .1),
-            0 0 28px rgba(37, 211, 102, .36),
+            0 .72rem 1.95rem rgba(0, 0, 0, .35),
+            0 0 1.35rem rgba(37, 211, 102, .32),
             inset 0 1px rgba(255, 255, 255, .4);
-        @apply inline-flex h-13 w-13 items-center justify-center gap-2 rounded-full p-0 transition;
+        @apply inline-flex items-center justify-center rounded-full p-0 transition;
+        width: clamp(2.9rem, 13vw, 3.35rem);
         animation: whatsapp-breathe 2.7s ease-in-out infinite;
     }
 
     .whatsapp-float::before {
         content: "";
         position: absolute;
-        inset: -.5rem;
+        inset: -12%;
         z-index: -1;
         border-radius: 999px;
-        border: 1px solid rgba(37, 211, 102, .22);
-        opacity: .68;
+        border: 1px solid rgba(37, 211, 102, .26);
+        background: rgba(37, 211, 102, .08);
+        opacity: .62;
         animation: whatsapp-ring 2.7s ease-in-out infinite;
     }
 
     .whatsapp-float svg {
-        height: 1.65rem;
-        width: 1.65rem;
+        height: 54%;
+        width: 54%;
         filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .24));
     }
 
     .whatsapp-float:hover {
         background:
-            radial-gradient(circle at 30% 20%, rgba(255, 255, 255, .4), transparent 28%),
-            linear-gradient(135deg, #48f686, #0fa34f);
+            radial-gradient(circle at 30% 22%, rgba(255, 255, 255, .46), transparent 28%),
+            linear-gradient(145deg, #35e575 0%, #16a34a 54%, #075e54 100%);
         box-shadow:
-            0 0 0 7px rgba(37, 211, 102, .13),
-            0 0 42px rgba(37, 211, 102, .56),
+            0 .82rem 2.15rem rgba(0, 0, 0, .38),
+            0 0 1.9rem rgba(37, 211, 102, .46),
             inset 0 1px rgba(255, 255, 255, .48);
-        transform: translateY(-2px) scale(1.02);
+        transform: translateY(-2px) scale(1.03);
     }
 
     @keyframes whatsapp-breathe {
@@ -359,7 +363,7 @@
             transform: translateY(0) scale(1);
         }
         50% {
-            transform: translateY(-1px) scale(1.035);
+            transform: translateY(-1px) scale(1.025);
         }
     }
 
@@ -369,8 +373,8 @@
             transform: scale(.92);
         }
         50% {
-            opacity: .72;
-            transform: scale(1.08);
+            opacity: .5;
+            transform: scale(1.06);
         }
     }
 

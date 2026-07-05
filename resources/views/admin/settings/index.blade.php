@@ -29,7 +29,7 @@
     @method('PUT')
 
     <div class="panel p-3">
-        <div class="grid gap-2 sm:grid-cols-2 {{ $isSuperAdmin ? 'lg:grid-cols-6' : 'lg:grid-cols-3' }}">
+        <div class="grid gap-2 sm:grid-cols-2 {{ $isSuperAdmin ? 'lg:grid-cols-7' : 'lg:grid-cols-3' }}">
             <button type="button" class="settings-tab" :class="tab === 'general' ? 'settings-tab-active' : ''" x-on:click="tab = 'general'">
                 General
             </button>
@@ -45,6 +45,9 @@
             </button>
             <button type="button" class="settings-tab" :class="tab === 'correo' ? 'settings-tab-active' : ''" x-on:click="tab = 'correo'">
                 Correo
+            </button>
+            <button type="button" class="settings-tab" :class="tab === 'marketing' ? 'settings-tab-active' : ''" x-on:click="tab = 'marketing'">
+                Marketing
             </button>
             @endif
             <button type="button" class="settings-tab" :class="tab === 'seo' ? 'settings-tab-active' : ''" x-on:click="tab = 'seo'">
@@ -199,6 +202,99 @@
             <div class="field"><label>Password</label><input name="MAIL_PASSWORD" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['MAIL_PASSWORD'] }}"></div>
             <div class="field"><label>Correo remitente</label><input type="email" name="MAIL_FROM_ADDRESS" value="{{ $value('MAIL_FROM_ADDRESS', 'hello@example.com') }}"></div>
             <div class="field"><label>Nombre remitente</label><input name="MAIL_FROM_NAME" value="{{ $value('MAIL_FROM_NAME', '${APP_NAME}') }}"></div>
+        </div>
+    </section>
+    @endif
+
+    @if($isSuperAdmin)
+    <section class="panel mt-6 p-5" x-show="tab === 'marketing'" x-cloak>
+        <h2 class="text-xl font-black uppercase text-white">Meta y Google</h2>
+        <p class="mt-2 text-sm leading-6 text-zinc-500">Activa solo las integraciones que ya tengas verificadas. Los IDs publicos pueden mostrarse en el HTML; los tokens privados se conservan solo en el servidor.</p>
+
+        <div class="mt-5 grid gap-5 lg:grid-cols-2">
+            <div class="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h3 class="font-black uppercase text-white">Meta Ads</h3>
+                        <p class="mt-1 text-sm leading-6 text-zinc-500">Prepara Meta Pixel para audiencias, medicion de eventos y futuras conversiones de servidor.</p>
+                    </div>
+                    <i data-lucide="badge-dollar-sign" class="accent-text h-5 w-5"></i>
+                </div>
+
+                <label class="mt-4 flex items-start gap-3 rounded-md border border-zinc-800 bg-zinc-900/60 p-3">
+                    <input type="checkbox" name="META_ADS_ENABLED" value="1" @checked(filter_var($value('META_ADS_ENABLED', false), FILTER_VALIDATE_BOOL))>
+                    <span>
+                        <span class="block font-bold text-white">Activar Meta Pixel</span>
+                        <span class="mt-1 block text-xs leading-5 text-zinc-500">Inserta el pixel en la tienda publica y registra PageView.</span>
+                    </span>
+                </label>
+
+                <div class="mt-4 grid gap-4">
+                    <div class="field">
+                        <label>Meta Pixel ID</label>
+                        <input name="META_PIXEL_ID" value="{{ $value('META_PIXEL_ID') }}" inputmode="numeric" placeholder="Ej. 123456789012345">
+                    </div>
+                    <div class="field">
+                        <label>Conversions API access token</label>
+                        <input name="META_CAPI_ACCESS_TOKEN" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['META_CAPI_ACCESS_TOKEN'] }}">
+                        <span class="text-xs leading-5 text-zinc-500">Opcional. Queda listo para enviar eventos servidor a servidor sin exponer el token al navegador.</span>
+                    </div>
+                    <div class="field">
+                        <label>Test event code</label>
+                        <input name="META_TEST_EVENT_CODE" value="{{ $value('META_TEST_EVENT_CODE') }}" placeholder="Opcional para pruebas de eventos">
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h3 class="font-black uppercase text-white">Google</h3>
+                        <p class="mt-1 text-sm leading-6 text-zinc-500">Verificacion para Search Console y etiqueta base para Google Ads.</p>
+                    </div>
+                    <i data-lucide="search-check" class="accent-text h-5 w-5"></i>
+                </div>
+
+                <label class="mt-4 flex items-start gap-3 rounded-md border border-zinc-800 bg-zinc-900/60 p-3">
+                    <input type="checkbox" name="GOOGLE_SEARCH_ENABLED" value="1" @checked(filter_var($value('GOOGLE_SEARCH_ENABLED', false), FILTER_VALIDATE_BOOL))>
+                    <span>
+                        <span class="block font-bold text-white">Activar verificacion de Google</span>
+                        <span class="mt-1 block text-xs leading-5 text-zinc-500">Agrega la meta etiqueta para reclamar el sitio en Search Console.</span>
+                    </span>
+                </label>
+
+                <div class="mt-4 field">
+                    <label>Google site verification</label>
+                    <input name="GOOGLE_SITE_VERIFICATION" value="{{ $value('GOOGLE_SITE_VERIFICATION') }}" placeholder="Contenido del meta tag">
+                </div>
+
+                <label class="mt-4 flex items-start gap-3 rounded-md border border-zinc-800 bg-zinc-900/60 p-3">
+                    <input type="checkbox" name="GOOGLE_ADS_ENABLED" value="1" @checked(filter_var($value('GOOGLE_ADS_ENABLED', false), FILTER_VALIDATE_BOOL))>
+                    <span>
+                        <span class="block font-bold text-white">Activar Google Ads tag</span>
+                        <span class="mt-1 block text-xs leading-5 text-zinc-500">Carga gtag.js para medicion y conversiones publicitarias.</span>
+                    </span>
+                </label>
+
+                <div class="mt-4 grid gap-4">
+                    <div class="field">
+                        <label>Google tag ID</label>
+                        <input name="GOOGLE_TAG_ID" value="{{ $value('GOOGLE_TAG_ID') }}" placeholder="G-XXXX, GT-XXXX o AW-XXXX">
+                    </div>
+                    <div class="field">
+                        <label>Conversion ID</label>
+                        <input name="GOOGLE_ADS_CONVERSION_ID" value="{{ $value('GOOGLE_ADS_CONVERSION_ID') }}" placeholder="AW-XXXXXXXX">
+                    </div>
+                    <div class="field">
+                        <label>Conversion label</label>
+                        <input name="GOOGLE_ADS_CONVERSION_LABEL" value="{{ $value('GOOGLE_ADS_CONVERSION_LABEL') }}" placeholder="Opcional para evento de compra futuro">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 rounded-md border border-blue-400/20 bg-blue-400/10 p-4 text-sm leading-6 text-blue-100">
+            Google Search no requiere API key para aparecer en buscadores: requiere sitio accesible, SEO correcto, sitemap y verificacion en Search Console. Meta Pixel tampoco usa API key publica; el token de Conversions API es privado y no debe salir en el frontend.
         </div>
     </section>
     @endif

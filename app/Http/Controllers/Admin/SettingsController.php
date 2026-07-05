@@ -22,6 +22,7 @@ class SettingsController extends Controller
                 'CLIP_SECRET_KEY' => $env->masked($values['CLIP_SECRET_KEY'] ?? null),
                 'CLIP_API_KEY' => $env->masked($values['CLIP_API_KEY'] ?? null),
                 'CLIP_WEBHOOK_SECRET' => $env->masked($values['CLIP_WEBHOOK_SECRET'] ?? null),
+                'META_CAPI_ACCESS_TOKEN' => $env->masked($values['META_CAPI_ACCESS_TOKEN'] ?? null),
                 'MAIL_PASSWORD' => $env->masked($values['MAIL_PASSWORD'] ?? null),
             ],
         ]);
@@ -31,7 +32,7 @@ class SettingsController extends Controller
     {
         $data = $request->validated();
 
-        foreach (['CLIP_PUBLIC_KEY', 'CLIP_SECRET_KEY', 'CLIP_API_KEY', 'CLIP_WEBHOOK_SECRET', 'MAIL_PASSWORD'] as $secretKey) {
+        foreach (['CLIP_PUBLIC_KEY', 'CLIP_SECRET_KEY', 'CLIP_API_KEY', 'CLIP_WEBHOOK_SECRET', 'META_CAPI_ACCESS_TOKEN', 'MAIL_PASSWORD'] as $secretKey) {
             if (($data[$secretKey] ?? '') === '') {
                 unset($data[$secretKey]);
             }
@@ -94,6 +95,16 @@ class SettingsController extends Controller
             'CLIP_WEBHOOK_URL',
             'CLIP_SUCCESS_URL',
             'CLIP_ERROR_URL',
+            'META_ADS_ENABLED',
+            'META_PIXEL_ID',
+            'META_CAPI_ACCESS_TOKEN',
+            'META_TEST_EVENT_CODE',
+            'GOOGLE_SEARCH_ENABLED',
+            'GOOGLE_SITE_VERIFICATION',
+            'GOOGLE_ADS_ENABLED',
+            'GOOGLE_TAG_ID',
+            'GOOGLE_ADS_CONVERSION_ID',
+            'GOOGLE_ADS_CONVERSION_LABEL',
             'MAIL_MAILER',
             'MAIL_SCHEME',
             'MAIL_HOST',

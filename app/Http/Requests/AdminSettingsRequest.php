@@ -17,6 +17,9 @@ class AdminSettingsRequest extends FormRequest
         $this->merge([
             'STORE_MAINTENANCE_MODE' => $this->boolean('STORE_MAINTENANCE_MODE'),
             'STORE_HEADER_SHOW_TITLE' => $this->boolean('STORE_HEADER_SHOW_TITLE'),
+            'META_ADS_ENABLED' => $this->boolean('META_ADS_ENABLED'),
+            'GOOGLE_SEARCH_ENABLED' => $this->boolean('GOOGLE_SEARCH_ENABLED'),
+            'GOOGLE_ADS_ENABLED' => $this->boolean('GOOGLE_ADS_ENABLED'),
         ]);
     }
 
@@ -58,6 +61,18 @@ class AdminSettingsRequest extends FormRequest
             'CLIP_WEBHOOK_URL' => ['nullable', 'url', 'max:220'],
             'CLIP_SUCCESS_URL' => ['nullable', 'url', 'max:220'],
             'CLIP_ERROR_URL' => ['nullable', 'url', 'max:220'],
+
+            'META_ADS_ENABLED' => ['boolean'],
+            'META_PIXEL_ID' => ['nullable', 'string', 'max:60', 'regex:/^[0-9]+$/'],
+            'META_CAPI_ACCESS_TOKEN' => ['nullable', 'string', 'max:2000'],
+            'META_TEST_EVENT_CODE' => ['nullable', 'string', 'max:120'],
+
+            'GOOGLE_SEARCH_ENABLED' => ['boolean'],
+            'GOOGLE_SITE_VERIFICATION' => ['nullable', 'string', 'max:220'],
+            'GOOGLE_ADS_ENABLED' => ['boolean'],
+            'GOOGLE_TAG_ID' => ['nullable', 'string', 'max:80', 'regex:/^(G|AW|GT)-[A-Za-z0-9_-]+$/'],
+            'GOOGLE_ADS_CONVERSION_ID' => ['nullable', 'string', 'max:80', 'regex:/^AW-[A-Za-z0-9_-]+$/'],
+            'GOOGLE_ADS_CONVERSION_LABEL' => ['nullable', 'string', 'max:120'],
 
             'MAIL_MAILER' => ['required', Rule::in(['log', 'smtp', 'array'])],
             'MAIL_SCHEME' => ['nullable', 'string', 'max:20'],

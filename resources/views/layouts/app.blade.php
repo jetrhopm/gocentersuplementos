@@ -1,17 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="@yield('meta_description', config('services.store.meta_description'))">
-    <title>@yield('title', config('app.name'))</title>
-    <link rel="icon" type="image/jpeg" href="{{ asset('assets/gocenter/logo.jpg') }}">
-    <link rel="apple-touch-icon" href="{{ asset('assets/gocenter/logo.jpg') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-zinc-950">
 @php
+    $marketing = config('services.marketing', []);
     $navCategories = \App\Models\Category::active()->orderBy('sort_order')->get();
     $cartCount = app(\App\Services\CartService::class)->count();
     $whatsapp = config('services.store.whatsapp');
@@ -19,7 +9,54 @@
     $storeName = config('app.name', 'Go Center Suplementos');
     $showHeaderTitle = config('services.store.header_show_title', false);
     $headerBanner = public_path('assets/gocenter/header-banner.jpg');
+    $whatsappNumber = preg_replace('/\D+/', '', (string) $whatsapp);
 @endphp
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="@yield('meta_description', config('services.store.meta_description'))">
+    @if(($marketing['google_search_enabled'] ?? false) && filled($marketing['google_site_verification'] ?? null))
+        <meta name="google-site-verification" content="{{ $marketing['google_site_verification'] }}">
+    @endif
+    <title>@yield('title', config('app.name'))</title>
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/gocenter/logo.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/gocenter/logo.jpg') }}">
+    @if(($marketing['google_ads_enabled'] ?? false) && filled($marketing['google_tag_id'] ?? null))
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ urlencode($marketing['google_tag_id']) }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', @json($marketing['google_tag_id']));
+            @if(filled($marketing['google_ads_conversion_id'] ?? null) && ($marketing['google_ads_conversion_id'] !== $marketing['google_tag_id']))
+                gtag('config', @json($marketing['google_ads_conversion_id']));
+            @endif
+        </script>
+    @endif
+    @if(($marketing['meta_enabled'] ?? false) && filled($marketing['meta_pixel_id'] ?? null))
+        <script>
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', @json($marketing['meta_pixel_id']));
+            fbq('track', 'PageView');
+        </script>
+    @endif
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="bg-zinc-950">
+@if(($marketing['meta_enabled'] ?? false) && filled($marketing['meta_pixel_id'] ?? null))
+    <noscript>
+        <img height="1" width="1" style="display:none" alt=""
+            src="https://www.facebook.com/tr?id={{ urlencode($marketing['meta_pixel_id']) }}&ev=PageView&noscript=1">
+    </noscript>
+@endif
 <div class="site-shell theme-{{ $theme }} min-h-dvh w-full overflow-x-hidden pb-24 md:pb-0">
     <header
         class="fixed inset-x-0 top-0 z-50 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur"
@@ -175,8 +212,14 @@
         </div>
     </footer>
 
-    @if($whatsapp && ! request()->routeIs('checkout.show'))
-        <a href="https://wa.me/{{ preg_replace('/\D+/', '', $whatsapp) }}" class="whatsapp-float fixed bottom-24 right-5 z-40 md:bottom-5" aria-label="WhatsApp">
+    @if($whatsappNumber && ! request()->routeIs('checkout.show'))
+        <a
+            href="https://wa.me/{{ $whatsappNumber }}?text={{ urlencode('Hola, quiero informacion de Go Center Suplementos.') }}"
+            target="_blank"
+            rel="noopener"
+            class="whatsapp-float fixed bottom-24 right-4 z-40 md:bottom-5 md:right-5"
+            aria-label="Contactar por WhatsApp"
+        >
             <svg aria-hidden="true" viewBox="0 0 32 32" class="h-5 w-5" fill="currentColor">
                 <path d="M16.04 3.2A12.7 12.7 0 0 0 5.12 22.4L3.8 28.8l6.54-1.28A12.7 12.7 0 1 0 16.04 3.2Zm0 2.34a10.36 10.36 0 0 1 8.82 15.82 10.36 10.36 0 0 1-13.25 3.56l-.46-.23-3.88.76.78-3.78-.25-.48A10.36 10.36 0 0 1 16.04 5.54Zm-5.09 5.55c-.24.54-.74 1.58-.74 3.02 0 1.77 1.26 3.48 1.43 3.72.18.24 2.45 3.93 6.03 5.35 2.98 1.18 3.58.95 4.22.89.65-.06 2.1-.86 2.39-1.69.3-.83.3-1.54.21-1.69-.09-.15-.32-.24-.68-.42-.35-.18-2.1-1.04-2.43-1.16-.32-.12-.56-.18-.8.18-.24.35-.92 1.16-1.13 1.4-.21.24-.42.27-.77.09-.35-.18-1.49-.55-2.84-1.75-1.05-.94-1.76-2.1-1.97-2.45-.21-.36-.02-.55.16-.73.16-.16.35-.42.53-.63.18-.21.24-.36.36-.59.12-.24.06-.45-.03-.63-.09-.18-.8-1.93-1.1-2.64-.29-.7-.58-.6-.8-.61h-.68c-.24 0-.62.09-.95.45Z" />
             </svg>
