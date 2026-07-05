@@ -1,7 +1,7 @@
 <article class="product-card group">
     <a href="{{ route('products.show', $product) }}" class="block">
         <div class="product-image-wrap relative aspect-[4/3] overflow-hidden">
-            <img src="{{ $product->displayImage() }}" alt="{{ $product->name }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+            <img src="{{ $product->displayImage() }}" alt="{{ $product->name }}" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
             <div class="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
                 <span class="rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold uppercase text-zinc-100 backdrop-blur">{{ $product->category->name }}</span>
                 @if($product->hasDiscount())

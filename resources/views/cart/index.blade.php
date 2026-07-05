@@ -47,7 +47,7 @@
                         <form method="POST" action="{{ route('cart.update', $item['key']) }}" class="flex items-center gap-1.5">
                             @csrf
                             @method('PATCH')
-                            <input class="w-14 text-center" type="number" name="quantity" value="{{ $item['quantity'] }}" min="0" max="{{ $item['stock'] }}">
+                            <input class="w-14 text-center" type="number" name="quantity" value="{{ $item['quantity'] }}" min="0" max="{{ $item['stock'] }}" inputmode="numeric" aria-label="Cantidad de {{ $item['product']->name }}">
                             <button class="btn-secondary px-2.5" aria-label="Actualizar"><i data-lucide="refresh-cw" class="h-4 w-4"></i></button>
                         </form>
                         <form method="POST" action="{{ route('cart.destroy', $item['key']) }}">
@@ -76,7 +76,11 @@
             <div class="mt-5" data-coupon-area>
                 @include('partials.cart-coupon')
             </div>
-            <a href="{{ route('checkout.show') }}" class="btn-primary mt-6 w-full @if($items->isEmpty()) pointer-events-none opacity-50 @endif">
+            <a
+                href="{{ route('checkout.show') }}"
+                class="btn-primary mt-6 w-full @if($items->isEmpty()) pointer-events-none opacity-50 @endif"
+                @if($items->isEmpty()) aria-disabled="true" tabindex="-1" @endif
+            >
                 <i data-lucide="credit-card" class="h-4 w-4"></i>
                 Ir a pagar
             </a>

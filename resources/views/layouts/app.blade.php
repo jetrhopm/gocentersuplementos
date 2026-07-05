@@ -14,12 +14,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#09090b">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="@yield('meta_description', config('services.store.meta_description'))">
     @if(($marketing['google_search_enabled'] ?? false) && filled($marketing['google_site_verification'] ?? null))
         <meta name="google-site-verification" content="{{ $marketing['google_site_verification'] }}">
     @endif
     <title>@yield('title', config('app.name'))</title>
+    <link rel="preconnect" href="https://images.unsplash.com">
     <link rel="icon" type="image/jpeg" href="{{ asset('assets/gocenter/logo.jpg') }}">
     <link rel="apple-touch-icon" href="{{ asset('assets/gocenter/logo.jpg') }}">
     @if(($marketing['google_ads_enabled'] ?? false) && filled($marketing['google_tag_id'] ?? null))
@@ -58,6 +60,7 @@
     </noscript>
 @endif
 <div class="site-shell theme-{{ $theme }} min-h-dvh w-full overflow-x-hidden pb-24 md:pb-0">
+    <a href="#contenido" class="skip-link">Saltar al contenido</a>
     <header
         class="fixed inset-x-0 top-0 z-50 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur"
         x-data="{ open: false }"
@@ -66,7 +69,7 @@
     >
         <div class="container-page header-grid h-16">
             <div class="header-left">
-                <button class="btn-secondary px-3 lg:hidden" x-on:click="open = ! open" aria-label="Menu">
+                <button class="btn-secondary px-3 lg:hidden" x-on:click="open = ! open" x-bind:aria-expanded="open" aria-controls="mobile-nav" aria-label="Menu">
                     <i data-lucide="menu" class="h-4 w-4"></i>
                 </button>
             </div>
@@ -96,11 +99,11 @@
                 <a href="{{ route('orders.lookup') }}" class="hidden muted-link sm:inline-flex">Consultar pedido</a>
                 <a href="{{ route('cart.index') }}" class="btn-secondary relative px-3" aria-label="Carrito">
                     <i data-lucide="shopping-cart" class="h-4 w-4"></i>
-                    <span class="accent-pill absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs font-black" data-cart-count>{{ $cartCount }}</span>
+                    <span class="accent-pill absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs font-black {{ $cartCount > 0 ? '' : 'hidden' }}" data-cart-count>{{ $cartCount }}</span>
                 </a>
             </div>
         </div>
-        <div class="border-t border-zinc-800 bg-zinc-950 lg:hidden" x-show="open" x-transition>
+        <div id="mobile-nav" class="border-t border-zinc-800 bg-zinc-950 lg:hidden" x-show="open" x-transition>
             <nav class="container-page grid gap-1 py-4">
                 <a class="muted-link py-2" href="{{ route('products.index') }}">Catalogo</a>
                 @foreach($navCategories as $category)
@@ -126,7 +129,7 @@
 
     <div class="toast-stack" data-toast-stack aria-live="polite" aria-atomic="true"></div>
 
-    <main class="pt-16">
+    <main id="contenido" class="pt-16">
         @yield('content')
     </main>
 

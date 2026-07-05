@@ -53,13 +53,18 @@
                     class="store-banner overflow-hidden @if($loop->first) active @endif"
                     data-carousel-slide
                     aria-hidden="{{ $loop->first ? 'false' : 'true' }}"
+                    @unless($loop->first) inert @endunless
                 >
                     <img src="{{ $banner['image'] }}" alt="{{ $banner['title'] }}" class="store-banner-image absolute inset-0 h-full w-full object-cover opacity-48">
                     <div class="absolute inset-0 bg-[linear-gradient(90deg,#050505_0%,rgba(5,5,5,.92)_42%,rgba(5,5,5,.24)_100%)]"></div>
                     <div class="relative grid min-h-[27rem] items-end gap-6 p-5 pb-20 sm:p-8 sm:pb-20 lg:min-h-[31rem] lg:p-10 lg:pb-20">
                         <div class="max-w-3xl">
                             <span class="badge">{{ $banner['kicker'] }}</span>
-                            <h2 class="store-banner-title mt-5 font-black text-white">{{ $banner['title'] }}</h2>
+                            @if($loop->first)
+                                <h1 class="store-banner-title mt-5 font-black text-white">{{ $banner['title'] }}</h1>
+                            @else
+                                <h2 class="store-banner-title mt-5 font-black text-white">{{ $banner['title'] }}</h2>
+                            @endif
                             <p class="mt-5 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">{{ $banner['copy'] }}</p>
                             <div class="mt-5 flex flex-wrap items-center gap-3">
                                 <span class="inline-flex items-center gap-2 text-sm font-bold uppercase text-zinc-300">
@@ -141,7 +146,7 @@
             @foreach($carouselProducts as $product)
                 <a href="{{ route('products.show', $product) }}" class="product-carousel-card">
                     <span class="product-carousel-image">
-                        <img src="{{ $product->displayImage() }}" alt="{{ $product->name }}">
+                        <img src="{{ $product->displayImage() }}" alt="{{ $product->name }}" loading="lazy" decoding="async">
                     </span>
                     <span class="block p-4">
                         <span class="badge">{{ $product->category?->name ?? 'Producto' }}</span>
@@ -174,7 +179,7 @@
     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @foreach($categories as $category)
             <a href="{{ route('categories.show', $category) }}" class="category-card min-h-56">
-                <img src="{{ $categoryImages[$category->slug] ?? $categoryImages['proteinas'] }}" alt="{{ $category->name }}" class="absolute inset-0 h-full w-full object-cover opacity-72">
+                <img src="{{ $categoryImages[$category->slug] ?? $categoryImages['proteinas'] }}" alt="{{ $category->name }}" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover opacity-72">
                 <div class="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent"></div>
                 <div class="absolute inset-x-0 bottom-0 p-5">
                     <div class="text-xs uppercase text-zinc-300">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</div>
@@ -193,7 +198,7 @@
                 <h2 class="section-heading mt-3">Recomendados Go Center</h2>
             </div>
             <form action="{{ route('products.index') }}" class="flex flex-col gap-2 sm:flex-row">
-                <input name="q" placeholder="Buscar whey, creatina, leggings..." class="min-h-11 min-w-0 sm:w-80">
+                <input name="q" placeholder="Buscar whey, creatina, leggings…" class="min-h-11 min-w-0 sm:w-80" aria-label="Buscar productos">
                 <button class="btn-primary min-h-11">
                     <i data-lucide="search" class="h-4 w-4"></i>
                     Buscar
@@ -227,7 +232,7 @@
                 @foreach($offers as $product)
                     <a href="{{ route('products.show', $product) }}" class="product-card grid grid-cols-[7rem_1fr] overflow-hidden">
                         <div class="product-image-wrap">
-                            <img src="{{ $product->displayImage() }}" alt="{{ $product->name }}" class="h-full min-h-36 w-full object-cover">
+                            <img src="{{ $product->displayImage() }}" alt="{{ $product->name }}" loading="lazy" decoding="async" class="h-full min-h-36 w-full object-cover">
                         </div>
                         <div class="p-4">
                             <span class="badge">Oferta</span>

@@ -63,8 +63,8 @@
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                 @if($product->activeVariants->isNotEmpty())
                     <div class="field">
-                        <label>Variante</label>
-                        <select name="variant_id" x-model="variant" required>
+                        <label for="variant_id">Variante</label>
+                        <select id="variant_id" name="variant_id" x-model="variant" required>
                             <option value="">Selecciona talla, sabor o presentacion</option>
                             @foreach($product->activeVariants as $variant)
                                 <option value="{{ $variant->id }}">{{ $variant->label() ?: 'Variante' }} - {{ $variant->stock }} disp. @if($variant->price_modifier != 0) - {{ $variant->price_modifier > 0 ? '+' : '' }}${{ number_format($variant->price_modifier, 2) }} @endif</option>
@@ -73,8 +73,8 @@
                     </div>
                 @endif
                 <div class="field max-w-32">
-                    <label>Cantidad</label>
-                    <input type="number" name="quantity" min="1" max="99" x-model="qty" value="1">
+                    <label for="quantity">Cantidad</label>
+                    <input id="quantity" type="number" name="quantity" min="1" max="99" inputmode="numeric" x-model="qty" value="1">
                 </div>
                 <button class="btn-primary min-h-12" @disabled($product->stock < 1)>
                     <i data-lucide="shopping-cart" class="h-4 w-4"></i>

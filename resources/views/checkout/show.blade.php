@@ -70,13 +70,15 @@
                 </div>
                 <div class="mt-5 grid gap-4 md:grid-cols-2">
                     <div class="field md:col-span-2">
-                        <label><i data-lucide="user-round" class="h-4 w-4"></i>Nombre completo</label>
+                        <label for="customer_name"><i data-lucide="user-round" class="h-4 w-4"></i>Nombre completo</label>
                         <div class="input-shell">
                             <i data-lucide="user-round" class="input-icon"></i>
                             <input
+                                id="customer_name"
                                 name="customer_name"
                                 value="{{ old('customer_name') }}"
                                 placeholder="Nombre y apellido"
+                                autocomplete="name"
                                 minlength="5"
                                 pattern="\S+\s+\S+.*"
                                 title="Escribe nombre y apellido."
@@ -86,27 +88,34 @@
                         </div>
                     </div>
                     <div class="field">
-                        <label><i data-lucide="mail" class="h-4 w-4"></i>Correo electronico</label>
+                        <label for="customer_email"><i data-lucide="mail" class="h-4 w-4"></i>Correo electronico</label>
                         <div class="input-shell">
                             <i data-lucide="mail" class="input-icon"></i>
                             <input
                                 type="email"
+                                id="customer_email"
                                 name="customer_email"
                                 value="{{ old('customer_email') }}"
                                 placeholder="correo@ejemplo.com"
+                                autocomplete="email"
+                                spellcheck="false"
+                                autocapitalize="off"
                                 data-error-message="Escribe un correo valido."
                                 required
                             >
                         </div>
                     </div>
                     <div class="field">
-                        <label><i data-lucide="phone" class="h-4 w-4"></i>Telefono</label>
+                        <label for="customer_phone"><i data-lucide="phone" class="h-4 w-4"></i>Telefono</label>
                         <div class="input-shell">
                             <i data-lucide="phone" class="input-icon"></i>
                             <input
+                                type="tel"
+                                id="customer_phone"
                                 name="customer_phone"
                                 value="{{ old('customer_phone') }}"
                                 inputmode="numeric"
+                                autocomplete="tel-national"
                                 minlength="10"
                                 maxlength="10"
                                 pattern="\d{10}"
@@ -136,36 +145,38 @@
                 </div>
                 <div class="mt-5 grid gap-4 md:grid-cols-2">
                     <div class="field md:col-span-2">
-                        <label><i data-lucide="route" class="h-4 w-4"></i>Calle</label>
+                        <label for="street"><i data-lucide="route" class="h-4 w-4"></i>Calle</label>
                         <div class="input-shell">
                             <i data-lucide="route" class="input-icon"></i>
-                            <input name="street" value="{{ old('street') }}" placeholder="Nombre de la calle" required>
+                            <input id="street" name="street" value="{{ old('street') }}" placeholder="Nombre de la calle" autocomplete="address-line1" required>
                         </div>
                     </div>
                     <div class="address-pair md:contents">
                         <div class="field compact-field">
-                            <label><i data-lucide="hash" class="h-4 w-4"></i>Numero exterior</label>
+                            <label for="external_number"><i data-lucide="hash" class="h-4 w-4"></i>Numero exterior</label>
                             <div class="input-shell">
                                 <i data-lucide="hash" class="input-icon"></i>
-                                <input name="external_number" value="{{ old('external_number') }}" required>
+                                <input id="external_number" name="external_number" value="{{ old('external_number') }}" required>
                             </div>
                         </div>
                         <div class="field compact-field">
-                            <label><i data-lucide="door-open" class="h-4 w-4"></i>Numero interior</label>
+                            <label for="internal_number"><i data-lucide="door-open" class="h-4 w-4"></i>Numero interior</label>
                             <div class="input-shell">
                                 <i data-lucide="door-open" class="input-icon"></i>
-                                <input name="internal_number" value="{{ old('internal_number') }}" placeholder="Opcional">
+                                <input id="internal_number" name="internal_number" value="{{ old('internal_number') }}" placeholder="Opcional">
                             </div>
                         </div>
                     </div>
                     <div class="field">
-                        <label><i data-lucide="mailbox" class="h-4 w-4"></i>Codigo postal</label>
+                        <label for="postal_code"><i data-lucide="mailbox" class="h-4 w-4"></i>Codigo postal</label>
                         <div class="input-shell">
                             <i data-lucide="mailbox" class="input-icon"></i>
                             <input
+                                id="postal_code"
                                 name="postal_code"
                                 value="{{ old('postal_code') }}"
                                 inputmode="numeric"
+                                autocomplete="postal-code"
                                 minlength="5"
                                 maxlength="5"
                                 pattern="\d{5}"
@@ -176,52 +187,57 @@
                                 required
                             >
                         </div>
-                        <p class="postal-lookup-message" data-postal-message></p>
+                        <p class="postal-lookup-message" data-postal-message aria-live="polite"></p>
                     </div>
                     <div class="field">
-                        <label><i data-lucide="map" class="h-4 w-4"></i>Colonia</label>
+                        <label for="neighborhood"><i data-lucide="map" class="h-4 w-4"></i>Colonia</label>
                         <div class="input-shell neighborhood-combobox" data-neighborhood-combobox>
                             <i data-lucide="map" class="input-icon"></i>
                             <input
+                                id="neighborhood"
                                 name="neighborhood"
                                 value="{{ old('neighborhood') }}"
                                 placeholder="Escribe o elige tu colonia"
                                 autocomplete="address-level3"
+                                role="combobox"
+                                aria-expanded="false"
+                                aria-controls="neighborhood-options"
+                                aria-autocomplete="list"
                                 data-neighborhood-field
                                 required
                             >
                             <button type="button" class="neighborhood-toggle" data-neighborhood-toggle aria-label="Mostrar colonias">
                                 <i data-lucide="chevron-down" class="h-4 w-4"></i>
                             </button>
-                            <div class="neighborhood-options" data-neighborhood-options hidden></div>
+                            <div class="neighborhood-options" id="neighborhood-options" data-neighborhood-options hidden></div>
                         </div>
                     </div>
                     <div class="field">
-                        <label><i data-lucide="building-2" class="h-4 w-4"></i>Ciudad o municipio</label>
+                        <label for="city"><i data-lucide="building-2" class="h-4 w-4"></i>Ciudad o municipio</label>
                         <div class="input-shell">
                             <i data-lucide="building-2" class="input-icon"></i>
-                            <input name="city" value="{{ old('city') }}" data-city-field required>
+                            <input id="city" name="city" value="{{ old('city') }}" autocomplete="address-level2" data-city-field required>
                         </div>
                     </div>
                     <div class="field">
-                        <label><i data-lucide="map-pin" class="h-4 w-4"></i>Estado</label>
+                        <label for="state"><i data-lucide="map-pin" class="h-4 w-4"></i>Estado</label>
                         <div class="input-shell">
                             <i data-lucide="map-pin" class="input-icon"></i>
-                            <input name="state" value="{{ old('state') }}" data-state-field required>
+                            <input id="state" name="state" value="{{ old('state') }}" autocomplete="address-level1" data-state-field required>
                         </div>
                     </div>
                     <div class="field md:col-span-2">
-                        <label><i data-lucide="navigation" class="h-4 w-4"></i>Referencias</label>
+                        <label for="references"><i data-lucide="navigation" class="h-4 w-4"></i>Referencias</label>
                         <div class="input-shell textarea">
                             <i data-lucide="navigation" class="input-icon"></i>
-                            <textarea name="references" rows="3" placeholder="Entre calles, color de fachada, punto de entrega">{{ old('references') }}</textarea>
+                            <textarea id="references" name="references" rows="3" placeholder="Entre calles, color de fachada, punto de entrega">{{ old('references') }}</textarea>
                         </div>
                     </div>
                     <div class="field md:col-span-2">
-                        <label><i data-lucide="notebook-pen" class="h-4 w-4"></i>Notas del pedido</label>
+                        <label for="customer_notes"><i data-lucide="notebook-pen" class="h-4 w-4"></i>Notas del pedido</label>
                         <div class="input-shell textarea">
                             <i data-lucide="notebook-pen" class="input-icon"></i>
-                            <textarea name="customer_notes" rows="3" placeholder="Indicaciones especiales opcionales">{{ old('customer_notes') }}</textarea>
+                            <textarea id="customer_notes" name="customer_notes" rows="3" placeholder="Indicaciones especiales opcionales">{{ old('customer_notes') }}</textarea>
                         </div>
                     </div>
                 </div>

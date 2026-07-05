@@ -19,6 +19,28 @@
         background: #09090b;
         min-height: 100%;
         overflow-x: hidden;
+        color-scheme: dark;
+    }
+
+    a,
+    button,
+    [role="button"],
+    input,
+    select,
+    textarea,
+    summary {
+        touch-action: manipulation;
+    }
+
+    :is(a, button, [role="button"], summary):focus-visible {
+        outline: 2px solid var(--accent, #bef264);
+        outline-offset: 2px;
+        border-radius: .35rem;
+    }
+
+    :is(input, select, textarea):focus-visible {
+        outline: 2px solid var(--accent, #bef264);
+        outline-offset: 1px;
     }
 
     body {
@@ -111,6 +133,23 @@
         --line: rgba(227, 6, 19, .24);
         --line-quiet: rgba(255, 255, 255, .1);
         --copy-muted: #b7b7bc;
+    }
+
+    .skip-link {
+        position: fixed;
+        left: 50%;
+        top: .65rem;
+        z-index: 90;
+        transform: translate(-50%, -260%);
+        border: 1px solid var(--accent);
+        background: var(--surface-strong, rgba(9, 9, 11, .96));
+        color: #fff;
+        transition: transform .18s ease;
+        @apply rounded-md px-4 py-2 text-sm font-black uppercase;
+    }
+
+    .skip-link:focus-visible {
+        transform: translate(-50%, 0);
     }
 
     .site-shell {
@@ -1120,6 +1159,7 @@
         padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
         background: rgba(0, 0, 0, .88);
         backdrop-filter: blur(14px);
+        overscroll-behavior: contain;
     }
 
     .product-zoom-modal img {
@@ -1725,6 +1765,15 @@
 
     .checkout-summary-row > span:first-child {
         @apply inline-flex items-center gap-2 text-zinc-400;
+    }
+
+    .checkout-summary-row > span:last-child,
+    [data-cart-subtotal],
+    [data-cart-shipping],
+    [data-cart-discount],
+    [data-cart-total],
+    .price-text {
+        font-variant-numeric: tabular-nums;
     }
 
     .gocenter-brand-card {

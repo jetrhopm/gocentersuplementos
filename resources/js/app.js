@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Alpine.started = true;
     }
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     createIcons({ icons });
 
     const searchDialog = document.getElementById('product-search-dialog');
@@ -64,6 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isActive = slideIndex === active;
                 slide.classList.toggle('active', isActive);
                 slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+                // Un slide oculto no debe recibir foco de teclado.
+                slide.toggleAttribute('inert', ! isActive);
             });
             dots.forEach((dot, dotIndex) => dot.classList.toggle('active', dotIndex === active));
         };
@@ -73,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const stop = () => window.clearInterval(timer);
         const start = () => {
             stop();
-            if (slides.length > 1 && intervalMs > 0) {
+            if (slides.length > 1 && intervalMs > 0 && ! prefersReducedMotion) {
                 timer = window.setInterval(next, intervalMs);
             }
         };
@@ -146,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const start = () => {
             stop();
-            if (intervalMs > 0 && isScrollable()) {
+            if (intervalMs > 0 && isScrollable() && ! prefersReducedMotion) {
                 timer = window.setInterval(tick, intervalMs);
             }
         };
@@ -766,7 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const token = ++postalLookupToken;
-            setPostalMessage('Buscando colonias...', 'loading');
+            setPostalMessage('Buscando colonias…', 'loading');
 
             try {
                 const response = await fetch(postalLookupUrl.replace('__CP__', postalCode), {
@@ -901,7 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             button.disabled = true;
-            result.textContent = 'Comprobando conexion con Clip...';
+            result.textContent = 'Comprobando conexion con Clip…';
             result.className = 'mt-3 rounded-md border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-300';
 
             try {
