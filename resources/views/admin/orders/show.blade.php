@@ -8,7 +8,13 @@
         <span class="badge">{{ $order->statusLabel() }}</span>
         <h1 class="mt-3 text-3xl font-black uppercase text-white">{{ $order->folio }}</h1>
     </div>
-    <div class="flex gap-2">
+    <div class="flex flex-wrap gap-2">
+        @if($order->isPayable())
+            <form method="POST" action="{{ route('admin.orders.payment-reminder', $order) }}" onsubmit="return confirm('Se enviara un correo a {{ $order->customer_email }} con el enlace de pago. ¿Continuar?');">
+                @csrf
+                <button type="submit" class="btn-primary"><i data-lucide="mail" class="h-4 w-4"></i>Enviar recordatorio de pago</button>
+            </form>
+        @endif
         <a href="{{ route('admin.orders.print', $order) }}" class="btn-secondary"><i data-lucide="printer" class="h-4 w-4"></i>Imprimir</a>
         <a href="{{ route('admin.orders.index') }}" class="btn-secondary">Volver</a>
     </div>

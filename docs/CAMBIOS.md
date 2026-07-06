@@ -164,6 +164,28 @@ Basado en la revisión de seguridad. Solo se aplicaron las correcciones de códi
 
 ---
 
+## 11. Retomar pago de Clip + recordatorio de pago por correo
+
+**Por qué:** si el cliente cancela el pago en Clip, al revisar su pedido debe poder **retomar el pago**. Además, el admin/superadmin necesita **enviar un correo** al cliente con un enlace que abra su pedido (con toda la info y el botón de pago) **sin teclear folio ni correo**. Diseñado para sumar otras pasarelas en el futuro.
+
+**Decisiones de diseño:**
+- Al cancelar en Clip, el pedido **ya no se marca "cancelado"**: se mantiene pendiente para poder retomarlo. "Cancelado" queda para cuando el admin cancela.
+- "Pagable" = estado `pendiente_clip`, `pendiente_transferencia` o `expirado` (y no pagado). Nuevo helper `Order::isPayable()`.
+- La ruta de pago va **firmada** (`signed`), por lo que solo se accede desde la vista del pedido o el enlace del correo.
+
+**Dónde:**
+- `app/Models/Order.php` — `isPayable()`.
+- `app/Http/Controllers/CheckoutController.php` — nuevo `pay(Order)` (retoma/inicia Clip para un pedido existente), helpers privados `startClipCheckout()` (reutilizado también por `store()`) y `ensurePayment()`; `clipCancelled()` ya **no** transiciona a cancelado.
+- `routes/web.php` — `POST /pago/reintentar/{order}` (`checkout.pay`, `signed` + `throttle:12,1`); `POST /admin/pedidos/{order}/recordatorio-pago` (`admin.orders.payment-reminder`).
+- `app/Http/Controllers/Admin/OrderController.php` — `sendPaymentReminder(Order)` (envía correo solo si el pedido es pagable).
+- `app/Mail/PaymentReminderMail.php` + `resources/views/emails/orders/payment-reminder.blade.php` — correo con enlace **firmado** a `orders.public.show` (abre el pedido + botón de pago).
+- `resources/views/checkout/received.blade.php` — panel "Termina tu pago" con botón "Pagar con Clip" cuando el pedido es pagable (se muestra también en la vista pública firmada del pedido).
+- `resources/views/admin/orders/show.blade.php` — botón "Enviar recordatorio de pago" (con confirmación) cuando el pedido es pagable.
+
+**Pruebas añadidas (`tests/Feature/StoreFlowTest.php`):** cancelar Clip mantiene el pedido pendiente; la vista del pedido muestra el botón de pago; el admin puede enviar el recordatorio; el recordatorio se bloquea en pedidos ya pagados. Total: **19/19**.
+
+---
+
 ## Pendientes del propietario antes de producción (no es código)
 - `APP_ENV=production`, `APP_DEBUG=false`.
 - Definir `CLIP_WEBHOOK_SECRET` (y dejar `CLIP_ALLOW_UNSIGNED_WEBHOOK=false`).

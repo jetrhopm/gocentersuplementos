@@ -12,6 +12,25 @@
                 <p class="mt-3 text-zinc-300">Folio: <span class="accent-text font-black">{{ $order->folio }}</span></p>
             </div>
 
+            @if($order->isPayable())
+                <div class="panel p-6">
+                    <div class="flex items-center gap-3">
+                        <span class="checkout-heading-icon"><i data-lucide="credit-card" class="h-5 w-5"></i></span>
+                        <div>
+                            <h2 class="text-xl font-black uppercase text-white">Termina tu pago</h2>
+                            <p class="mt-1 text-sm text-zinc-400">Tu pedido esta reservado y pendiente de pago. Puedes pagar en linea de forma segura.</p>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ URL::signedRoute('checkout.pay', $order) }}" class="mt-5">
+                        @csrf
+                        <button class="btn-primary min-h-12 w-full sm:w-auto" type="submit">
+                            <i data-lucide="credit-card" class="h-4 w-4"></i>
+                            Pagar con Clip
+                        </button>
+                    </form>
+                </div>
+            @endif
+
             @if($order->payment_method === 'transferencia')
                 <div class="panel p-6">
                     <h2 class="text-xl font-black uppercase text-white">Instrucciones de transferencia</h2>

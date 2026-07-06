@@ -52,6 +52,7 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::post('/pedido-recibido/{order}/referencia', [CheckoutController::class, 'transferReference'])->middleware(['signed', 'throttle:12,1'])->name('transfer.reference');
 });
 
+Route::post('/pago/reintentar/{order}', [CheckoutController::class, 'pay'])->middleware(['signed', 'throttle:12,1'])->name('checkout.pay');
 Route::get('/pago/clip/exito', [CheckoutController::class, 'clipSuccess'])->name('checkout.clip.success');
 Route::get('/pago/clip/error', [CheckoutController::class, 'clipError'])->name('checkout.clip.error');
 Route::get('/pago/clip/retorno/{order}', [CheckoutController::class, 'clipReturn'])->middleware(['signed', 'throttle:30,1'])->name('checkout.clip.return');
@@ -79,6 +80,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('cupones', AdminCouponController::class)->names('coupons')->parameters(['cupones' => 'coupon'])->except('show');
         Route::resource('administradores', AdminUserController::class)->names('users')->parameters(['administradores' => 'user'])->except('show');
         Route::get('/pedidos/{order}/imprimir', [AdminOrderController::class, 'print'])->name('orders.print');
+        Route::post('/pedidos/{order}/recordatorio-pago', [AdminOrderController::class, 'sendPaymentReminder'])->name('orders.payment-reminder');
         Route::patch('/pedidos/{order}/estado', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
         Route::resource('pedidos', AdminOrderController::class)->names('orders')->parameters(['pedidos' => 'order'])->only(['index', 'show']);
     });

@@ -367,4 +367,87 @@ class StoreFlowTest extends TestCase
             ->assertJsonPath('city', 'Los Mochis')
             ->assertJsonFragment(['name' => 'Centro']);
     }
+
+    public function test_cancelling_clip_keeps_order_pending(): void
+    {
+        $order = $this->makePendingClipOrder();
+
+        $this->get(URL::signedRoute('checkout.clip.cancelled', ['order' => $order, 'folio' => $order->folio]))
+            ->assertOk();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => Order::STATUS_PENDING_CLIP,
+        ]);
+    }
+
+    public function test_pending_order_shows_pay_button(): void
+    {
+        $order = $this->makePendingClipOrder();
+
+        $this->get(URL::signedRoute('orders.public.show', $order))
+            ->assertOk()
+            ->assertSee('Pagar con Clip');
+    }
+
+    public function test_admin_can_send_payment_reminder(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $admin = User::where('email', 'admin@local.test')->firstOrFail();
+        $order = $this->makePendingClipOrder();
+
+        $this->actingAs($admin)
+            ->post(route('admin.orders.payment-reminder', $order))
+            ->assertSessionHas('status');
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\PaymentReminderMail::class);
+    }
+
+    public function test_payment_reminder_blocked_for_paid_order(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $admin = User::where('email', 'admin@local.test')->firstOrFail();
+        $order = $this->makePendingClipOrder();
+        $order->update(['status' => Order::STATUS_PAID]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.orders.payment-reminder', $order))
+            ->assertSessionHasErrors('reminder');
+
+        \Illuminate\Support\Facades\Mail::assertNothingSent();
+    }
+
+    private function makePendingClipOrder(): Order
+    {
+        $order = Order::create([
+            'folio' => Order::makeFolio(),
+            'customer_name' => 'Juan Perez',
+            'customer_email' => 'juan@example.com',
+            'customer_phone' => '5512345678',
+            'street' => 'Av Reforma',
+            'external_number' => '123',
+            'neighborhood' => 'Centro',
+            'city' => 'Cuauhtemoc',
+            'state' => 'CDMX',
+            'postal_code' => '06000',
+            'subtotal' => 1000,
+            'shipping_cost' => 0,
+            'discount' => 0,
+            'total' => 1000,
+            'payment_method' => 'clip',
+            'status' => Order::STATUS_PENDING_CLIP,
+        ]);
+
+        Payment::create([
+            'order_id' => $order->id,
+            'method' => 'clip',
+            'provider' => 'clip',
+            'status' => 'pending',
+            'amount' => 1000,
+            'currency' => 'MXN',
+            'external_reference' => $order->folio,
+        ]);
+
+        return $order;
+    }
 }

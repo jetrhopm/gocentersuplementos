@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminOrderStatusRequest;
+use App\Mail\PaymentReminderMail;
 use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -53,6 +56,23 @@ class OrderController extends Controller
         );
 
         return back()->with('status', 'Pedido actualizado.');
+    }
+
+    public function sendPaymentReminder(Order $order)
+    {
+        if (! $order->isPayable()) {
+            return back()->withErrors(['reminder' => 'Solo se puede enviar recordatorio de pedidos pendientes de pago.']);
+        }
+
+        try {
+            Mail::to($order->customer_email)->send(new PaymentReminderMail($order));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->withErrors(['reminder' => 'No se pudo enviar el correo. Revisa la configuracion de correo.']);
+        }
+
+        return back()->with('status', 'Recordatorio de pago enviado a '.$order->customer_email.'.');
     }
 
     public function print(Order $order)

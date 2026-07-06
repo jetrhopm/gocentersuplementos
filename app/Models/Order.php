@@ -130,6 +130,18 @@ class Order extends Model
         return self::statuses()[$this->status] ?? Str::headline($this->status);
     }
 
+    /**
+     * Estados en los que el pedido sigue pendiente y puede pagarse en linea.
+     */
+    public function isPayable(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_PENDING_CLIP,
+            self::STATUS_PENDING_TRANSFER,
+            self::STATUS_EXPIRED,
+        ], true);
+    }
+
     public function transferNumericReference(): string
     {
         return str_pad((string) $this->id, 8, '0', STR_PAD_LEFT);

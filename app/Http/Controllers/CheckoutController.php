@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Services\CartService;
 use App\Services\ClipService;
 use App\Services\OrderService;
@@ -38,19 +39,8 @@ class CheckoutController extends Controller
 
         if ($order->payment_method === 'clip') {
             try {
-                $response = $this->clip->createCheckout($order);
-                $order->payment->update([
-                    'status' => $response['status'] ?? 'pending',
-                    'payment_request_id' => $response['payment_request_id'] ?? null,
-                    'payment_request_url' => $response['payment_request_url'] ?? null,
-                    'raw_response' => $response,
-                ]);
-
-                if (! empty($response['payment_request_url'])) {
-                    return view('checkout.clip-redirect', [
-                        'order' => $order,
-                        'clipUrl' => $response['payment_request_url'],
-                    ]);
+                if ($redirect = $this->startClipCheckout($order)) {
+                    return $redirect;
                 }
             } catch (RuntimeException $exception) {
                 report($exception);
@@ -62,6 +52,81 @@ class CheckoutController extends Controller
         }
 
         return redirect()->to(URL::signedRoute('checkout.received', $order));
+    }
+
+    /**
+     * Retoma o inicia el pago de un pedido pendiente con Clip. La ruta va
+     * firmada, por lo que solo se accede desde la vista del pedido o el
+     * enlace del correo (sin teclear folio ni correo).
+     */
+    public function pay(Request $request, Order $order)
+    {
+        if ($order->status === Order::STATUS_PAID) {
+            return redirect()->to(URL::signedRoute('orders.public.show', $order))
+                ->with('status', 'Este pedido ya esta pagado.');
+        }
+
+        if (! $order->isPayable()) {
+            return redirect()->to(URL::signedRoute('orders.public.show', $order))
+                ->withErrors(['pago' => 'Este pedido ya no se puede pagar en linea. Contacta a la tienda.']);
+        }
+
+        $this->ensurePayment($order);
+        $order->update(['payment_method' => 'clip', 'status' => Order::STATUS_PENDING_CLIP]);
+        $order->refresh()->load('payment');
+
+        try {
+            if ($redirect = $this->startClipCheckout($order)) {
+                return $redirect;
+            }
+        } catch (RuntimeException $exception) {
+            report($exception);
+        }
+
+        return redirect()->to(URL::signedRoute('orders.public.show', $order))
+            ->withErrors(['pago' => 'No se pudo iniciar el pago con Clip. Intenta de nuevo en unos minutos.']);
+    }
+
+    private function startClipCheckout(Order $order)
+    {
+        $response = $this->clip->createCheckout($order);
+
+        $order->payment?->update([
+            'method' => 'clip',
+            'provider' => 'clip',
+            'status' => $response['status'] ?? 'pending',
+            'payment_request_id' => $response['payment_request_id'] ?? null,
+            'payment_request_url' => $response['payment_request_url'] ?? null,
+            'raw_response' => $response,
+        ]);
+
+        if (! empty($response['payment_request_url'])) {
+            return view('checkout.clip-redirect', [
+                'order' => $order,
+                'clipUrl' => $response['payment_request_url'],
+            ]);
+        }
+
+        return null;
+    }
+
+    private function ensurePayment(Order $order): void
+    {
+        if ($order->payment) {
+            return;
+        }
+
+        Payment::create([
+            'order_id' => $order->id,
+            'method' => 'clip',
+            'provider' => 'clip',
+            'status' => 'pending',
+            'amount' => $order->total,
+            'currency' => 'MXN',
+            'external_reference' => $order->folio,
+        ]);
+
+        $order->load('payment');
     }
 
     public function received(Order $order)
@@ -110,11 +175,8 @@ class CheckoutController extends Controller
 
     public function clipCancelled(Order $order)
     {
-        if ($order->status === Order::STATUS_PENDING_CLIP) {
-            $this->orders->transition($order, Order::STATUS_CANCELLED, 'Pago cancelado por el usuario en Clip');
-            $order->refresh();
-        }
-
+        // No se cancela el pedido: se mantiene pendiente para que el cliente
+        // pueda retomar el pago desde la vista de su pedido o el correo.
         return view('checkout.clip-error', compact('order'));
     }
 }
