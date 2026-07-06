@@ -77,7 +77,10 @@ class ClipService
         $secret = config('services.clip.webhook_secret');
 
         if (! $secret) {
-            return ! app()->environment('production');
+            // Sin secreto configurado se rechaza por defecto. Solo se acepta si
+            // se habilita explicitamente el opt-in de pruebas y no es produccion.
+            return config('services.clip.allow_unsigned_webhook', false)
+                && ! app()->environment('production');
         }
 
         $signature = $request->headers->get('x-clip-signature')

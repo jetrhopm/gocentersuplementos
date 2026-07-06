@@ -29,6 +29,8 @@ return [
         'api_key' => env('CLIP_API_KEY'),
         'auth_scheme' => env('CLIP_AUTH_SCHEME', 'Basic'),
         'webhook_secret' => env('CLIP_WEBHOOK_SECRET'),
+        // Solo para pruebas locales: acepta webhooks sin firma. NUNCA en produccion.
+        'allow_unsigned_webhook' => env('CLIP_ALLOW_UNSIGNED_WEBHOOK', false),
         'webhook_url' => env('CLIP_WEBHOOK_URL'),
         'success_url' => env('CLIP_SUCCESS_URL'),
         'error_url' => env('CLIP_ERROR_URL'),

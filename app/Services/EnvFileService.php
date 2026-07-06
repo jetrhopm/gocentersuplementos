@@ -82,7 +82,8 @@ class EnvFileService
             return '';
         }
 
-        $value = (string) $value;
+        // Evita inyeccion de nuevas lineas en el .env: se colapsan los saltos.
+        $value = str_replace(["\r\n", "\r", "\n"], ' ', (string) $value);
 
         if (preg_match('/^[A-Za-z0-9_\-\.\/:@${}]+$/', $value)) {
             return $value;
