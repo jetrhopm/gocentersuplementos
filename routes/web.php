@@ -22,7 +22,7 @@ Route::get('/categoria/{category}', [StoreController::class, 'category'])->name(
 Route::get('/ofertas', [StoreController::class, 'offers'])->name('offers');
 Route::get('/productos/{product}', [StoreController::class, 'show'])->name('products.show');
 Route::get('/consultar-pedido', [StoreController::class, 'lookup'])->name('orders.lookup');
-Route::post('/consultar-pedido', [StoreController::class, 'lookupResult'])->middleware('throttle:12,1')->name('orders.lookup.result');
+Route::get('/consultar-pedido/buscar', [StoreController::class, 'lookupResult'])->middleware('throttle:12,1')->name('orders.lookup.result');
 Route::get('/pedido/{order}/ver', [StoreController::class, 'publicOrder'])->middleware('signed')->name('orders.public.show');
 Route::get('/sitemap.xml', [StoreController::class, 'sitemap'])->name('sitemap');
 Route::get('/api/codigos-postales/{postalCode}', [PostalCodeController::class, 'show'])
@@ -82,6 +82,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/pedidos/{order}/imprimir', [AdminOrderController::class, 'print'])->name('orders.print');
         Route::post('/pedidos/{order}/recordatorio-pago', [AdminOrderController::class, 'sendPaymentReminder'])->name('orders.payment-reminder');
         Route::patch('/pedidos/{order}/estado', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
-        Route::resource('pedidos', AdminOrderController::class)->names('orders')->parameters(['pedidos' => 'order'])->only(['index', 'show']);
+        Route::resource('pedidos', AdminOrderController::class)->names('orders')->parameters(['pedidos' => 'order'])->only(['index', 'show', 'destroy']);
     });
 });

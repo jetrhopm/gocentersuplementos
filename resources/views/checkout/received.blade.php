@@ -12,6 +12,51 @@
                 <p class="mt-3 text-zinc-300">Folio: <span class="accent-text font-black">{{ $order->folio }}</span></p>
             </div>
 
+            <div class="panel p-6">
+                <div class="flex items-center gap-3">
+                    <span class="checkout-heading-icon"><i data-lucide="user-round" class="h-5 w-5"></i></span>
+                    <div>
+                        <h2 class="text-xl font-black uppercase text-white">Datos del comprador</h2>
+                        <p class="mt-1 text-sm text-zinc-500">Informacion registrada para contacto y entrega.</p>
+                    </div>
+                </div>
+
+                <div class="mt-5 grid gap-3 text-sm text-zinc-300 md:grid-cols-2">
+                    <div class="rounded-lg border border-zinc-800 bg-zinc-950/70 p-4">
+                        <div class="text-xs uppercase text-zinc-500">Nombre completo</div>
+                        <div class="mt-1 font-bold text-white">{{ $order->customer_name }}</div>
+                    </div>
+                    <div class="rounded-lg border border-zinc-800 bg-zinc-950/70 p-4">
+                        <div class="text-xs uppercase text-zinc-500">Correo</div>
+                        <div class="mt-1 break-words font-bold text-white">{{ $order->customer_email }}</div>
+                    </div>
+                    <div class="rounded-lg border border-zinc-800 bg-zinc-950/70 p-4">
+                        <div class="text-xs uppercase text-zinc-500">Telefono</div>
+                        <div class="mt-1 font-bold text-white">{{ $order->customer_phone }}</div>
+                    </div>
+                    <div class="rounded-lg border border-zinc-800 bg-zinc-950/70 p-4">
+                        <div class="text-xs uppercase text-zinc-500">Codigo postal</div>
+                        <div class="mt-1 font-bold text-white">{{ $order->postal_code }}</div>
+                    </div>
+                    <div class="rounded-lg border border-zinc-800 bg-zinc-950/70 p-4 md:col-span-2">
+                        <div class="text-xs uppercase text-zinc-500">Direccion</div>
+                        <div class="mt-1 leading-6 text-white">
+                            {{ $order->street }} {{ $order->external_number }}
+                            @if($order->internal_number)
+                                Int. {{ $order->internal_number }}
+                            @endif
+                            , {{ $order->neighborhood }}, {{ $order->city }}, {{ $order->state }}
+                        </div>
+                    </div>
+                    @if($order->references)
+                        <div class="rounded-lg border border-zinc-800 bg-zinc-950/70 p-4 md:col-span-2">
+                            <div class="text-xs uppercase text-zinc-500">Referencias</div>
+                            <div class="mt-1 leading-6 text-white">{{ $order->references }}</div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             @if($order->isPayable())
                 <div class="panel p-6">
                     <div class="flex items-center gap-3">

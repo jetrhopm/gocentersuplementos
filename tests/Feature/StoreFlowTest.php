@@ -353,6 +353,12 @@ class StoreFlowTest extends TestCase
 
         $response->assertOk()
             ->assertSee($order->transferNumericReference())
+            ->assertSee('Datos del comprador')
+            ->assertSee($order->customer_name)
+            ->assertSee($order->customer_email)
+            ->assertSee($order->customer_phone)
+            ->assertSee($order->street)
+            ->assertSee($order->neighborhood)
             ->assertSee('nos ayuda a identificar tu pago mas rapido')
             ->assertSee('Referencia usada o generada por tu banco (opcional)')
             ->assertDontSee('required', false);
@@ -366,6 +372,18 @@ class StoreFlowTest extends TestCase
             ->assertJsonPath('state', 'Sinaloa')
             ->assertJsonPath('city', 'Los Mochis')
             ->assertJsonFragment(['name' => 'Centro']);
+    }
+
+    public function test_order_lookup_uses_get_and_does_not_require_csrf_session(): void
+    {
+        $order = $this->makePendingClipOrder();
+
+        $this->get(route('orders.lookup.result', [
+            'folio' => $order->folio,
+            'contact' => $order->customer_email,
+        ]))
+            ->assertOk()
+            ->assertSee($order->folio);
     }
 
     public function test_cancelling_clip_keeps_order_pending(): void
@@ -415,6 +433,66 @@ class StoreFlowTest extends TestCase
             ->assertSessionHasErrors('reminder');
 
         \Illuminate\Support\Facades\Mail::assertNothingSent();
+    }
+
+    public function test_super_admin_can_delete_order_and_restore_discounted_stock(): void
+    {
+        $superAdmin = User::where('email', 'superadmin@local.test')->firstOrFail();
+        $product = Product::where('stock', '>', 0)->firstOrFail();
+        $product->update(['stock' => 7]);
+
+        $order = Order::create([
+            'folio' => Order::makeFolio(),
+            'customer_name' => 'Juan Perez',
+            'customer_email' => 'juan@example.com',
+            'customer_phone' => '5512345678',
+            'street' => 'Av Reforma',
+            'external_number' => '123',
+            'neighborhood' => 'Centro',
+            'city' => 'Cuauhtemoc',
+            'state' => 'CDMX',
+            'postal_code' => '06000',
+            'subtotal' => 300,
+            'shipping_cost' => 0,
+            'discount' => 0,
+            'total' => 300,
+            'payment_method' => 'clip',
+            'status' => Order::STATUS_PAID,
+            'stock_discounted_at' => now(),
+        ]);
+
+        $order->items()->create([
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'unit_price' => 100,
+            'quantity' => 3,
+            'total' => 300,
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->delete(route('admin.orders.destroy', $order))
+            ->assertRedirect(route('admin.orders.index'))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseMissing('orders', ['id' => $order->id]);
+        $this->assertSame(10, $product->refresh()->stock);
+        $this->assertDatabaseHas('inventory_movements', [
+            'product_id' => $product->id,
+            'type' => 'order_deleted_restore',
+            'quantity' => 3,
+        ]);
+    }
+
+    public function test_limited_admin_cannot_delete_orders(): void
+    {
+        $admin = User::where('email', 'admin@local.test')->firstOrFail();
+        $order = $this->makePendingClipOrder();
+
+        $this->actingAs($admin)
+            ->delete(route('admin.orders.destroy', $order))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('orders', ['id' => $order->id]);
     }
 
     private function makePendingClipOrder(): Order

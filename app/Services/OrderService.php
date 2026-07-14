@@ -185,6 +185,19 @@ class OrderService
         return $order->refresh();
     }
 
+    public function deleteWithInventoryRestore(Order $order): void
+    {
+        DB::transaction(function () use ($order) {
+            $order = Order::with(['items', 'payment'])->whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            if ($order->stock_discounted_at) {
+                $this->restoreStock($order);
+            }
+
+            $order->delete();
+        });
+    }
+
     private function discountStock(Order $order): void
     {
         $order->loadMissing('items');
@@ -227,6 +240,53 @@ class OrderService
                     'before_stock' => $before,
                     'after_stock' => $product->stock,
                     'notes' => 'Pedido '.$order->folio,
+                ]);
+            }
+        }
+    }
+
+    private function restoreStock(Order $order): void
+    {
+        $order->loadMissing('items');
+
+        foreach ($order->items as $item) {
+            if ($item->product_variant_id) {
+                $variant = ProductVariant::whereKey($item->product_variant_id)->lockForUpdate()->first();
+
+                if ($variant) {
+                    $before = $variant->stock;
+                    $variant->stock = $before + $item->quantity;
+                    $variant->save();
+
+                    InventoryMovement::create([
+                        'product_id' => $item->product_id,
+                        'product_variant_id' => $variant->id,
+                        'order_id' => $order->id,
+                        'type' => 'order_deleted_restore',
+                        'quantity' => $item->quantity,
+                        'before_stock' => $before,
+                        'after_stock' => $variant->stock,
+                        'notes' => 'Restauracion por eliminacion de pedido '.$order->folio,
+                    ]);
+                }
+            }
+
+            $product = Product::whereKey($item->product_id)->lockForUpdate()->first();
+
+            if ($product) {
+                $before = $product->stock;
+                $product->stock = $before + $item->quantity;
+                $product->save();
+
+                InventoryMovement::create([
+                    'product_id' => $product->id,
+                    'product_variant_id' => $item->product_variant_id,
+                    'order_id' => $order->id,
+                    'type' => 'order_deleted_restore',
+                    'quantity' => $item->quantity,
+                    'before_stock' => $before,
+                    'after_stock' => $product->stock,
+                    'notes' => 'Restauracion por eliminacion de pedido '.$order->folio,
                 ]);
             }
         }

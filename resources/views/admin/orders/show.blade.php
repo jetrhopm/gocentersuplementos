@@ -16,6 +16,13 @@
             </form>
         @endif
         <a href="{{ route('admin.orders.print', $order) }}" class="btn-secondary"><i data-lucide="printer" class="h-4 w-4"></i>Imprimir</a>
+        @if(auth()->user()?->isSuperAdmin())
+            <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirm('Se eliminara el pedido {{ $order->folio }}. Si el inventario ya fue descontado, se regresara al stock. Esta accion no se puede deshacer. Continuar?');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-danger"><i data-lucide="trash-2" class="h-4 w-4"></i>Eliminar pedido</button>
+            </form>
+        @endif
         <a href="{{ route('admin.orders.index') }}" class="btn-secondary">Volver</a>
     </div>
 </div>

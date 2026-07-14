@@ -1,5 +1,41 @@
 # Registro de cambios — Go Center Suplementos
 
+## Actualizacion 2026-07-14: pagos pendientes, consulta de pedido, datos visibles y control de superadmin
+
+**Objetivo:** cerrar problemas detectados en pruebas locales antes de enviar a produccion: pedidos Clip pendientes que necesitaban reintento, consulta publica que podia caer en 419 por CSRF vencido, vista de pedido recibido incompleta para el comprador, eliminacion controlada de pedidos y login admin con datos precargados.
+
+**Cambios funcionales:**
+- `CheckoutController`: agrega flujo para retomar un pago Clip pendiente desde una ruta firmada. Si el pedido ya esta pagado o ya no es pagable, redirige al detalle publico con mensaje.
+- `checkout.received`: muestra boton "Pagar con Clip" cuando el pedido sigue pendiente y agrega panel "Datos del comprador" con nombre, correo, telefono, codigo postal, direccion y referencias.
+- `StoreController` + `routes/web.php` + `orders.lookup`: la consulta de pedido pasa de `POST /consultar-pedido` a `GET /consultar-pedido/buscar`, manteniendo validacion y throttling. Esto evita `419 Page Expired` por tokens CSRF vencidos en navegadores moviles.
+- `Admin\OrderController`: agrega envio de recordatorio de pago por correo para pedidos pendientes y eliminacion de pedidos solo para superadmin.
+- `OrderService`: agrega `deleteWithInventoryRestore()`. Si el pedido ya desconto inventario (`stock_discounted_at`), restaura stock de producto/variante antes de eliminar y registra movimiento `order_deleted_restore`.
+- `Order`: agrega `isPayable()` para centralizar estados que aun pueden pagarse en linea.
+- `PaymentReminderMail`: correo con enlace firmado para que el cliente vea su pedido y pueda pagar sin capturar folio/correo.
+- `admin.orders.index` y `admin.orders.show`: muestran accion de eliminar pedido solo al superadmin, con confirmacion explicita.
+- `admin.login`: elimina el correo precargado por defecto y agrega boton para ver/ocultar contrasena.
+
+**Seguridad y reglas de negocio:**
+- La eliminacion de pedidos se valida en backend con `isSuperAdmin()`. Ocultar el boton en Blade no es la unica proteccion.
+- Admin normal recibe `403` si intenta borrar pedidos.
+- Al borrar un pedido que nunca desconto stock, no se incrementa inventario.
+- `order_items` y `payments` se eliminan por cascada; `payment_webhook_logs` e `inventory_movements` quedan como historial con `order_id` nulo segun las reglas de BD.
+- La consulta publica por `GET` no modifica datos y conserva `throttle:12,1`.
+
+**Pruebas agregadas o actualizadas:**
+- Consulta de pedido por `GET` sin depender de sesion CSRF.
+- Pedido recibido muestra datos del comprador.
+- Cancelar Clip mantiene el pedido pendiente.
+- Pedido pendiente muestra boton de pago.
+- Admin puede enviar recordatorio de pago.
+- Recordatorio bloqueado para pedido pagado.
+- Superadmin puede eliminar pedido y restaurar stock descontado.
+- Admin normal no puede eliminar pedidos.
+
+**Validacion local:** `php artisan test` paso con 22 pruebas y 81 assertions.
+
+---
+
 Documento de referencia de los cambios realizados en esta sesión: **qué** se cambió, **por qué** y **dónde** (archivo y, cuando aplica, líneas/clases/funciones). Pensado para acompañar los commits y las descripciones de PR en GitHub.
 
 Estado al momento de escribir:

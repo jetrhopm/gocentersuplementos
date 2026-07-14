@@ -19,7 +19,7 @@
 </form>
 <div class="panel mt-6 overflow-x-auto">
     <table class="w-full text-left text-sm">
-        <thead class="border-b border-zinc-800 text-xs uppercase text-zinc-500"><tr><th class="p-4">Folio</th><th class="p-4">Cliente</th><th class="p-4">Total</th><th class="p-4">Pago</th><th class="p-4">Estado</th><th class="p-4">Fecha</th></tr></thead>
+        <thead class="border-b border-zinc-800 text-xs uppercase text-zinc-500"><tr><th class="p-4">Folio</th><th class="p-4">Cliente</th><th class="p-4">Total</th><th class="p-4">Pago</th><th class="p-4">Estado</th><th class="p-4">Fecha</th>@if(auth()->user()?->isSuperAdmin())<th class="p-4">Acciones</th>@endif</tr></thead>
         <tbody class="divide-y divide-zinc-800">
             @foreach($orders as $order)
                 <tr>
@@ -29,6 +29,17 @@
                     <td class="p-4 text-zinc-400">{{ $order->payment_method }}</td>
                     <td class="p-4"><span class="badge">{{ $order->statusLabel() }}</span></td>
                     <td class="p-4 text-zinc-500">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                    @if(auth()->user()?->isSuperAdmin())
+                        <td class="p-4">
+                            <form method="POST" action="{{ route('admin.orders.destroy', $order) }}" onsubmit="return confirm('Se eliminara el pedido {{ $order->folio }}. Si el inventario ya fue descontado, se regresara al stock. Esta accion no se puede deshacer. Continuar?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-danger px-3 py-2" aria-label="Eliminar pedido {{ $order->folio }}">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                </button>
+                            </form>
+                        </td>
+                    @endif
                 </tr>
             @endforeach
         </tbody>

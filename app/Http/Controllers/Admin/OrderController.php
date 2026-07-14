@@ -58,6 +58,18 @@ class OrderController extends Controller
         return back()->with('status', 'Pedido actualizado.');
     }
 
+    public function destroy(Request $request, Order $order, OrderService $orders)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        $folio = $order->folio;
+        $orders->deleteWithInventoryRestore($order);
+
+        return redirect()
+            ->route('admin.orders.index')
+            ->with('status', 'Pedido '.$folio.' eliminado. Si tenia inventario descontado, fue restaurado.');
+    }
+
     public function sendPaymentReminder(Order $order)
     {
         if (! $order->isPayable()) {

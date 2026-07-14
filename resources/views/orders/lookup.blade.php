@@ -5,12 +5,11 @@
 @section('content')
 <section class="container-page py-12">
     <div class="grid gap-6 lg:grid-cols-[24rem_1fr]">
-        <form method="POST" action="{{ route('orders.lookup.result') }}" class="panel h-fit p-6">
-            @csrf
+        <form method="GET" action="{{ route('orders.lookup.result') }}" class="panel h-fit p-6">
             <h1 class="text-2xl font-black uppercase text-white">Consulta tu pedido</h1>
             <div class="mt-5 grid gap-4">
-                <div class="field"><label>Folio</label><input name="folio" value="{{ old('folio') }}" required></div>
-                <div class="field"><label>Correo o telefono</label><input name="contact" value="{{ old('contact') }}" required></div>
+                <div class="field"><label>Folio</label><input name="folio" value="{{ old('folio', request('folio')) }}" required></div>
+                <div class="field"><label>Correo o telefono</label><input name="contact" value="{{ old('contact', request('contact')) }}" required></div>
                 <button class="btn-primary">Buscar</button>
             </div>
         </form>
