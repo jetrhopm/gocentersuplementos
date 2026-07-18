@@ -20,6 +20,7 @@ class AdminSettingsRequest extends FormRequest
             'META_ADS_ENABLED' => $this->boolean('META_ADS_ENABLED'),
             'GOOGLE_SEARCH_ENABLED' => $this->boolean('GOOGLE_SEARCH_ENABLED'),
             'GOOGLE_ADS_ENABLED' => $this->boolean('GOOGLE_ADS_ENABLED'),
+            'MAIL_SCHEME' => $this->normalizeMailScheme($this->input('MAIL_SCHEME')),
         ]);
     }
 
@@ -75,7 +76,7 @@ class AdminSettingsRequest extends FormRequest
             'GOOGLE_ADS_CONVERSION_LABEL' => ['nullable', 'string', 'max:120'],
 
             'MAIL_MAILER' => ['required', Rule::in(['log', 'smtp', 'array'])],
-            'MAIL_SCHEME' => ['nullable', 'string', 'max:20'],
+            'MAIL_SCHEME' => ['nullable', Rule::in(['smtp', 'smtps'])],
             'MAIL_HOST' => ['nullable', 'string', 'max:160'],
             'MAIL_PORT' => ['nullable', 'integer', 'min:1', 'max:65535'],
             'MAIL_USERNAME' => ['nullable', 'string', 'max:180'],
@@ -83,5 +84,17 @@ class AdminSettingsRequest extends FormRequest
             'MAIL_FROM_ADDRESS' => ['required', 'email', 'max:180'],
             'MAIL_FROM_NAME' => ['required', 'string', 'max:120'],
         ]);
+    }
+
+    private function normalizeMailScheme(mixed $scheme): ?string
+    {
+        $scheme = strtolower(trim((string) $scheme));
+
+        return match ($scheme) {
+            '', 'null', 'none' => null,
+            'ssl', 'smtps' => 'smtps',
+            'tls', 'starttls', 'smtp' => 'smtp',
+            default => $scheme,
+        };
     }
 }

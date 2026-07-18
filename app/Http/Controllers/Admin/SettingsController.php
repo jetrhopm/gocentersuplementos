@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminSettingsRequest;
+use App\Mail\TestMail;
 use App\Services\ClipService;
 use App\Services\EnvFileService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class SettingsController extends Controller
 {
@@ -63,6 +66,84 @@ class SettingsController extends Controller
         $result = $clip->testConnection($override);
 
         return response()->json($result, $result['ok'] ? 200 : 422);
+    }
+
+    public function testMail(Request $request, EnvFileService $env)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        $data = $request->validate([
+            'MAIL_MAILER' => ['required', 'in:log,smtp,array'],
+            'MAIL_SCHEME' => ['nullable', 'string', 'max:20'],
+            'MAIL_HOST' => ['nullable', 'string', 'max:160'],
+            'MAIL_PORT' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'MAIL_USERNAME' => ['nullable', 'string', 'max:180'],
+            'MAIL_PASSWORD' => ['nullable', 'string', 'max:1000'],
+            'MAIL_FROM_ADDRESS' => ['required', 'email', 'max:180'],
+            'MAIL_FROM_NAME' => ['required', 'string', 'max:120'],
+            'test_email' => ['required', 'email', 'max:180'],
+        ]);
+
+        $values = $env->values($this->keys());
+        $password = $request->filled('MAIL_PASSWORD')
+            ? $data['MAIL_PASSWORD']
+            : ($values['MAIL_PASSWORD'] ?? null);
+        $scheme = $this->normalizeMailScheme($data['MAIL_SCHEME'] ?? null);
+
+        if (! in_array($scheme, [null, 'smtp', 'smtps'], true)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Scheme no valido. Usa smtps para puerto 465 o smtp para puerto 587.',
+            ], 422);
+        }
+
+        config([
+            'mail.default' => $data['MAIL_MAILER'],
+            'mail.from.address' => $data['MAIL_FROM_ADDRESS'],
+            'mail.from.name' => $data['MAIL_FROM_NAME'],
+            'mail.mailers.smtp.scheme' => $scheme,
+            'mail.mailers.smtp.host' => $data['MAIL_HOST'] ?: null,
+            'mail.mailers.smtp.port' => $data['MAIL_PORT'] ?: null,
+            'mail.mailers.smtp.username' => $data['MAIL_USERNAME'] ?: null,
+            'mail.mailers.smtp.password' => $password ?: null,
+        ]);
+
+        app('mail.manager')->forgetMailers();
+
+        try {
+            Mail::to($data['test_email'])->send(new TestMail(
+                $data['MAIL_FROM_NAME'],
+                $data['MAIL_FROM_ADDRESS']
+            ));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'No se pudo enviar el correo. Revisa host, puerto, scheme, usuario y password.',
+            ], 422);
+        }
+
+        $message = $data['MAIL_MAILER'] === 'smtp'
+            ? 'Correo de prueba enviado a '.$data['test_email'].'.'
+            : 'Prueba correcta. El mailer '.$data['MAIL_MAILER'].' no envia correos reales por SMTP.';
+
+        return response()->json([
+            'ok' => true,
+            'message' => $message,
+        ]);
+    }
+
+    private function normalizeMailScheme(mixed $scheme): ?string
+    {
+        $scheme = strtolower(trim((string) $scheme));
+
+        return match ($scheme) {
+            '', 'null', 'none' => null,
+            'ssl', 'smtps' => 'smtps',
+            'tls', 'starttls', 'smtp' => 'smtp',
+            default => $scheme,
+        };
     }
 
     private function keys(): array

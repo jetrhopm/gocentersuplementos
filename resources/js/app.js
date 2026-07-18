@@ -1051,4 +1051,45 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    document.querySelectorAll('[data-mail-test]').forEach((button) => {
+        const result = document.querySelector(button.dataset.mailTestResult);
+        const form = document.querySelector(button.dataset.mailTestForm);
+
+        button.addEventListener('click', async () => {
+            if (! form || ! result) {
+                return;
+            }
+
+            button.disabled = true;
+            result.textContent = 'Enviando correo de prueba...';
+            result.className = 'mt-3 rounded-md border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-300';
+
+            try {
+                const payload = new FormData(form);
+                payload.delete('_method');
+
+                const response = await fetch(button.dataset.mailTest, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': form.querySelector('input[name="_token"]')?.value || '',
+                        'Accept': 'application/json',
+                    },
+                    body: payload,
+                });
+                const data = await response.json();
+                const ok = response.ok && data.ok;
+
+                result.className = ok
+                    ? 'mt-3 rounded-md border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-100'
+                    : 'mt-3 rounded-md border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-100';
+                result.textContent = data.message || (ok ? 'Correo probado correctamente.' : 'No se pudo probar el correo.');
+            } catch (error) {
+                result.className = 'mt-3 rounded-md border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-100';
+                result.textContent = 'No se pudo conectar con el servidor para probar el correo.';
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
 });

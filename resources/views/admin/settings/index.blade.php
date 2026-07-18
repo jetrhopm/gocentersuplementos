@@ -195,13 +195,46 @@
         <h2 class="text-xl font-black uppercase text-white">Correo</h2>
         <div class="mt-5 grid gap-4 md:grid-cols-2">
             <div class="field"><label>Mailer</label><select name="MAIL_MAILER"><option value="log" @selected($value('MAIL_MAILER', 'log') === 'log')>Log</option><option value="smtp" @selected($value('MAIL_MAILER') === 'smtp')>SMTP</option><option value="array" @selected($value('MAIL_MAILER') === 'array')>Array/testing</option></select></div>
-            <div class="field"><label>Scheme</label><input name="MAIL_SCHEME" value="{{ $value('MAIL_SCHEME') }}" placeholder="tls, ssl o null"></div>
+            @php
+                $mailScheme = match(strtolower((string) $value('MAIL_SCHEME'))) {
+                    'ssl', 'smtps' => 'smtps',
+                    'tls', 'starttls', 'smtp' => 'smtp',
+                    default => $value('MAIL_SCHEME'),
+                };
+            @endphp
+            <div class="field">
+                <label>Scheme / cifrado</label>
+                <select name="MAIL_SCHEME">
+                    <option value="">Sin cifrado / automatico</option>
+                    <option value="smtps" @selected($mailScheme === 'smtps')>smtps - SSL, puerto 465</option>
+                    <option value="smtp" @selected($mailScheme === 'smtp')>smtp - TLS/STARTTLS, puerto 587</option>
+                </select>
+            </div>
             <div class="field"><label>Host</label><input name="MAIL_HOST" value="{{ $value('MAIL_HOST', '127.0.0.1') }}"></div>
             <div class="field"><label>Puerto</label><input type="number" name="MAIL_PORT" value="{{ $value('MAIL_PORT', 2525) }}"></div>
             <div class="field"><label>Usuario</label><input name="MAIL_USERNAME" value="{{ $value('MAIL_USERNAME') }}"></div>
             <div class="field"><label>Password</label><input name="MAIL_PASSWORD" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['MAIL_PASSWORD'] }}"></div>
             <div class="field"><label>Correo remitente</label><input type="email" name="MAIL_FROM_ADDRESS" value="{{ $value('MAIL_FROM_ADDRESS', 'hello@example.com') }}"></div>
             <div class="field"><label>Nombre remitente</label><input name="MAIL_FROM_NAME" value="{{ $value('MAIL_FROM_NAME', '${APP_NAME}') }}"></div>
+            <div class="field md:col-span-2">
+                <label>Enviar prueba a</label>
+                <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <input type="email" name="test_email" value="{{ old('test_email', auth()->user()?->email) }}" placeholder="correo@dominio.com">
+                    <button
+                        type="button"
+                        class="btn-secondary min-h-11"
+                        data-mail-test="{{ route('admin.settings.mail.test') }}"
+                        data-mail-test-form="#admin-settings-form"
+                        data-mail-test-result="#mail-test-result"
+                    >
+                        <i data-lucide="mail-check" class="h-4 w-4"></i>
+                        Probar correo
+                    </button>
+                </div>
+                <div id="mail-test-result" class="mt-3 rounded-md border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-500">
+                    Envia un correo de prueba usando los valores visibles del formulario. Si el password queda vacio, se usa el guardado en el servidor.
+                </div>
+            </div>
         </div>
     </section>
     @endif
