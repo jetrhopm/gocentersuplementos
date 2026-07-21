@@ -238,26 +238,59 @@ class StoreFlowTest extends TestCase
         ])->assertOk()->assertJsonPath('diagnostic', true);
     }
 
-    public function test_clip_webhook_rejects_unsigned_payment_payload(): void
+    public function test_clip_webhook_accepts_unmatched_unsigned_postback_test(): void
     {
         config(['services.clip.webhook_secret' => 'secret-for-signature']);
 
         $this->postJson(route('webhooks.clip'), [
-            'event_type' => 'REQUEST_COMPLETED',
-            'payment_detail' => [
-                'merch_inv_id' => 'GYM-TEST-UNSIGNED',
-            ],
-            'payment_request_detail' => [
-                'id' => 'clip_req_unsigned',
-                'merch_inv_id' => 'GYM-TEST-UNSIGNED',
-            ],
-        ])->assertUnauthorized()->assertJsonPath('ok', false);
+            'event_type' => 'UPDATE',
+            'status' => 'PAID',
+            'amount' => 100,
+            'currency' => 'MXN',
+            'merch_inv_id' => 'GYM-TEST-UNMATCHED',
+            'receipt_no' => 'RCPT-TEST',
+            'transaction_id' => 'TXN-TEST',
+        ])->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('registered', true);
 
         $this->assertDatabaseHas('payment_webhook_logs', [
             'provider' => 'clip',
-            'status' => 'invalid_signature',
+            'status' => 'unsigned_unmatched',
             'signature_valid' => false,
-            'response_status' => 401,
+            'response_status' => 200,
+        ]);
+    }
+
+    public function test_clip_webhook_does_not_mark_matching_unsigned_postback_as_paid_without_verification(): void
+    {
+        config(['services.clip.webhook_secret' => 'secret-for-signature']);
+
+        $order = $this->makePendingClipOrder();
+
+        $this->postJson(route('webhooks.clip'), [
+            'event_type' => 'UPDATE',
+            'status' => 'PAID',
+            'amount' => 1000,
+            'currency' => 'MXN',
+            'merch_inv_id' => $order->folio,
+            'receipt_no' => 'RCPT-UNSIGNED',
+            'transaction_id' => 'TXN-UNSIGNED',
+        ])->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('manual_review', true);
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => Order::STATUS_PENDING_CLIP,
+        ]);
+
+        $this->assertDatabaseHas('payment_webhook_logs', [
+            'provider' => 'clip',
+            'order_id' => $order->id,
+            'status' => 'unsigned_requires_review',
+            'signature_valid' => false,
+            'response_status' => 200,
         ]);
     }
 

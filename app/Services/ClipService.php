@@ -106,6 +106,8 @@ class ClipService
         $eventType = $payload['event_type'] ?? $data['event_type'] ?? null;
         $status = $data['status']
             ?? $payload['status']
+            ?? $data['resource_status']
+            ?? $payload['resource_status']
             ?? $paymentDetail['status']
             ?? $requestDetail['status']
             ?? $data['payment_status']
@@ -113,13 +115,13 @@ class ClipService
 
         return [
             'event_id' => $payload['id'] ?? $payload['event_id'] ?? $data['id'] ?? null,
-            'payment_request_id' => $data['payment_request_id'] ?? $payload['payment_request_id'] ?? $data['payment_request']['id'] ?? $requestDetail['id'] ?? null,
-            'external_reference' => $metadata['external_reference'] ?? $metadata['merch_inv_id'] ?? $data['external_reference'] ?? $payload['external_reference'] ?? $data['merch_inv_id'] ?? $paymentDetail['merch_inv_id'] ?? $requestDetail['merch_inv_id'] ?? null,
+            'payment_request_id' => $data['payment_request_id'] ?? $payload['payment_request_id'] ?? $data['payment_request']['id'] ?? $requestDetail['id'] ?? $data['payment_request_code'] ?? $payload['payment_request_code'] ?? null,
+            'external_reference' => $metadata['external_reference'] ?? $metadata['merch_inv_id'] ?? $data['external_reference'] ?? $payload['external_reference'] ?? $data['me_reference_id'] ?? $payload['me_reference_id'] ?? $data['merch_inv_id'] ?? $payload['merch_inv_id'] ?? $data['merchant_invoice_id'] ?? $payload['merchant_invoice_id'] ?? $data['merchant_invoice'] ?? $payload['merchant_invoice'] ?? $paymentDetail['merch_inv_id'] ?? $requestDetail['merch_inv_id'] ?? null,
             'status' => $status,
             'amount' => $this->amountFrom($data, $payload, $paymentDetail, $requestDetail),
             'currency' => $data['currency'] ?? $payload['currency'] ?? $paymentDetail['currency'] ?? $requestDetail['currency'] ?? null,
             'receipt_no' => $data['receipt_no'] ?? $payload['receipt_no'] ?? $paymentDetail['receipt_no'] ?? null,
-            'transaction_id' => $data['transaction_id'] ?? $data['transaction']['id'] ?? $paymentDetail['transaction_id'] ?? $paymentDetail['transaction']['id'] ?? $payload['transaction_id'] ?? null,
+            'transaction_id' => $data['transaction_id'] ?? $data['transaction']['id'] ?? $paymentDetail['transaction_id'] ?? $paymentDetail['transaction']['id'] ?? $payload['transaction_id'] ?? $payload['transaction']['id'] ?? null,
         ];
     }
 
