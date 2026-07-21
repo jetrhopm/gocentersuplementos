@@ -196,6 +196,47 @@ class StoreFlowTest extends TestCase
         ]);
     }
 
+    public function test_clip_webhook_accepts_unsigned_diagnostic_ping_without_processing_payment(): void
+    {
+        config(['services.clip.webhook_secret' => 'secret-for-signature']);
+
+        $this->postJson(route('webhooks.clip'), [])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('provider', 'clip')
+            ->assertJsonPath('diagnostic', true);
+
+        $this->assertDatabaseHas('payment_webhook_logs', [
+            'provider' => 'clip',
+            'status' => 'diagnostic_ping',
+            'signature_valid' => false,
+            'response_status' => 200,
+        ]);
+    }
+
+    public function test_clip_webhook_rejects_unsigned_payment_payload(): void
+    {
+        config(['services.clip.webhook_secret' => 'secret-for-signature']);
+
+        $this->postJson(route('webhooks.clip'), [
+            'event_type' => 'REQUEST_COMPLETED',
+            'payment_detail' => [
+                'merch_inv_id' => 'GYM-TEST-UNSIGNED',
+            ],
+            'payment_request_detail' => [
+                'id' => 'clip_req_unsigned',
+                'merch_inv_id' => 'GYM-TEST-UNSIGNED',
+            ],
+        ])->assertUnauthorized()->assertJsonPath('ok', false);
+
+        $this->assertDatabaseHas('payment_webhook_logs', [
+            'provider' => 'clip',
+            'status' => 'invalid_signature',
+            'signature_valid' => false,
+            'response_status' => 401,
+        ]);
+    }
+
     public function test_limited_admin_cannot_reject_paid_clip_order(): void
     {
         $admin = User::where('email', 'admin@local.test')->firstOrFail();

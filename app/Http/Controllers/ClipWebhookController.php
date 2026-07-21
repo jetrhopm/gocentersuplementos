@@ -28,6 +28,29 @@ class ClipWebhookController extends Controller
         $extracted = $clip->extract($payload);
 
         if (! $signatureValid) {
+            if ($this->isDiagnosticPing($payload, $extracted)) {
+                PaymentWebhookLog::firstOrCreate(
+                    ['payload_hash' => $hash],
+                    [
+                        'provider' => 'clip',
+                        'event_id' => $extracted['event_id'],
+                        'payment_request_id' => $extracted['payment_request_id'],
+                        'external_reference' => $extracted['external_reference'],
+                        'status' => 'diagnostic_ping',
+                        'payload' => $payload,
+                        'signature_valid' => false,
+                        'processed_at' => now(),
+                        'response_status' => 200,
+                    ]
+                );
+
+                return response()->json([
+                    'ok' => true,
+                    'provider' => 'clip',
+                    'diagnostic' => true,
+                ]);
+            }
+
             PaymentWebhookLog::firstOrCreate(
                 ['payload_hash' => $hash],
                 [
@@ -109,5 +132,23 @@ class ClipWebhookController extends Controller
         $log->update(['processed_at' => now()]);
 
         return response()->json(['ok' => true]);
+    }
+
+    private function isDiagnosticPing(array $payload, array $extracted): bool
+    {
+        $status = strtolower((string) ($extracted['status'] ?? $payload['type'] ?? $payload['event'] ?? ''));
+        $hasPaymentReference = $extracted['payment_request_id']
+            || $extracted['external_reference']
+            || $extracted['amount'] !== null
+            || $extracted['currency'];
+
+        if ($hasPaymentReference) {
+            return false;
+        }
+
+        return $payload === []
+            || in_array($status, ['test', 'ping', 'webhook_test', 'webhook.test', 'verification'], true)
+            || str_contains($status, 'test')
+            || str_contains($status, 'ping');
     }
 }
