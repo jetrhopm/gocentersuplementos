@@ -318,32 +318,38 @@ class CatalogBackupService
 
     private function categoryBanner(Category $category): ?array
     {
-        $extensions = ['jpg', 'jpeg', 'png', 'webp'];
-        $candidates = [];
-
-        foreach ($extensions as $extension) {
-            $candidates[] = "assets/categories/{$category->slug}.{$extension}";
-            $candidates[] = "assets/categories/category-{$category->slug}.{$extension}";
-            $candidates[] = "assets/gocenter/category-{$category->slug}.{$extension}";
-            $candidates[] = "assets/wolfpak/{$category->slug}/category-{$category->slug}.{$extension}";
-            $candidates[] = "assets/wolfpak/mochilas/category-{$category->slug}.{$extension}";
-        }
-
-        foreach ($candidates as $relativePath) {
+        foreach ($this->categoryBannerCandidates($category) as $relativePath) {
             $absolutePath = public_path($relativePath);
 
             if (File::isFile($absolutePath)) {
-                return [
-                    'path' => $relativePath,
-                    'absolute_path' => $absolutePath,
-                    'archive_path' => 'files/public/'.$relativePath,
-                    'included' => true,
-                    'source_type' => 'public',
-                ];
+                return $this->localImagePayload($relativePath, $absolutePath, 'files/public/'.$relativePath, 'public');
             }
         }
 
         return $this->scanCategoryBanner($category);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function categoryBannerCandidates(Category $category): array
+    {
+        $extensions = ['jpg', 'jpeg', 'png', 'webp'];
+        $official = [];
+        $legacy = [];
+
+        foreach ($extensions as $extension) {
+            $official[] = "assets/categories/{$category->slug}.{$extension}";
+            $official[] = "assets/categories/category-{$category->slug}.{$extension}";
+
+            // Temporary compatibility with the paths used before the asset folders were split.
+            $legacy[] = "assets/gocenter/category-{$category->slug}.{$extension}";
+            $legacy[] = "assets/wolfpak/{$category->slug}/category-{$category->slug}.{$extension}";
+            $legacy[] = "assets/wolfpak/products/category-{$category->slug}.{$extension}";
+            $legacy[] = "assets/wolfpak/mochilas/category-{$category->slug}.{$extension}";
+        }
+
+        return array_values(array_unique(array_merge($official, $legacy)));
     }
 
     private function scanCategoryBanner(Category $category): ?array

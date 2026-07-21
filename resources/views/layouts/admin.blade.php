@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') | {{ config('app.name') }}</title>
-    <link rel="icon" type="image/jpeg" href="{{ asset('assets/gocenter/logo.jpg') }}">
-    <link rel="apple-touch-icon" href="{{ asset('assets/gocenter/logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/brand/logo.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/brand/logo.jpg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-zinc-950">
@@ -19,7 +19,7 @@
         <div class="container-page flex h-16 items-center justify-between gap-4">
             <a href="{{ route('admin.dashboard') }}" class="admin-brand">
                 <span class="admin-brand-banner">
-                    <img src="{{ asset('assets/gocenter/header-banner.jpg') }}" alt="{{ config('app.name') }}">
+                    <img src="{{ asset('assets/brand/header-banner.jpg') }}" alt="{{ config('app.name') }}">
                 </span>
                 <span class="admin-brand-copy">
                     <span>Panel admin</span>
@@ -35,6 +35,7 @@
                 @if(auth()->user()?->isSuperAdmin())
                     <a class="admin-nav-link" href="{{ route('admin.users.index') }}">Administradores</a>
                     <a class="admin-nav-link" href="{{ route('admin.backups.catalog.index') }}">Backups</a>
+                    <a class="admin-nav-link" href="{{ route('admin.catalog-cleanup.index') }}">Limpieza</a>
                 @endif
                 <a class="admin-nav-link" href="{{ route('admin.settings.index') }}">Configuracion</a>
             </nav>
@@ -86,6 +87,10 @@
                     <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.backups.catalog.index') }}">
                         <i data-lucide="database-backup" class="h-4 w-4"></i>
                         Backups
+                    </a>
+                    <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.catalog-cleanup.index') }}">
+                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                        Limpieza
                     </a>
                 @endif
                 <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.settings.index') }}">

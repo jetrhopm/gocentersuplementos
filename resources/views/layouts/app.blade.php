@@ -8,7 +8,7 @@
     $theme = config('services.store.theme', 'volt');
     $storeName = config('app.name', 'Go Center Suplementos');
     $showHeaderTitle = config('services.store.header_show_title', false);
-    $headerBanner = public_path('assets/gocenter/header-banner.jpg');
+    $headerBanner = public_path('assets/brand/header-banner.jpg');
     $whatsappNumber = preg_replace('/\D+/', '', (string) $whatsapp);
 @endphp
 <head>
@@ -24,8 +24,8 @@
     <link rel="preconnect" href="https://images.unsplash.com">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800,900&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/jpeg" href="{{ asset('assets/gocenter/logo.jpg') }}">
-    <link rel="apple-touch-icon" href="{{ asset('assets/gocenter/logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('assets/brand/logo.jpg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/brand/logo.jpg') }}">
     @if(($marketing['google_ads_enabled'] ?? false) && filled($marketing['google_tag_id'] ?? null))
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ urlencode($marketing['google_tag_id']) }}"></script>
         <script>
@@ -87,7 +87,7 @@
                     </span>
                 @else
                     <span class="site-brand-banner">
-                        <img src="{{ asset('assets/gocenter/header-banner.jpg') }}" alt="{{ $storeName }}" width="1280" height="426" fetchpriority="high">
+                        <img src="{{ asset('assets/brand/header-banner.jpg') }}" alt="{{ $storeName }}" width="1280" height="426" fetchpriority="high">
                     </span>
                 @endif
             </a>

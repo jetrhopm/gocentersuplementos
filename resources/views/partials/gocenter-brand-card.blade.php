@@ -1,5 +1,5 @@
 <div class="gocenter-brand-card">
-    <img src="{{ asset('assets/gocenter/banner.jpg') }}" alt="Go Center Suplementos" width="1280" height="720" loading="lazy" decoding="async">
+    <img src="{{ asset('assets/brand/banner.jpg') }}" alt="Go Center Suplementos" width="1280" height="720" loading="lazy" decoding="async">
     <div class="gocenter-brand-overlay"></div>
     <div class="gocenter-brand-content">
         <span class="gocenter-brand-chip">Go Center Suplementos</span>

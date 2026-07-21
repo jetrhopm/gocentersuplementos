@@ -13,7 +13,7 @@
 
 <div class="container-page pt-8">
     <a href="{{ route('products.index', ['category' => 'packs-gocenter']) }}" class="promo-banner" aria-label="Ver packs Go Center">
-        <img src="{{ asset('assets/gocenter/banner.jpg') }}" alt="Go Center Suplementos" width="1280" height="720" loading="lazy" decoding="async">
+        <img src="{{ asset('assets/brand/banner.jpg') }}" alt="Go Center Suplementos" width="1280" height="720" loading="lazy" decoding="async">
     </a>
 </div>
 

@@ -4,10 +4,15 @@ namespace Tests\Feature;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductImage;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Services\CartService;
+use App\Services\CatalogBackupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -509,6 +514,40 @@ class StoreFlowTest extends TestCase
         $this->assertStringContainsString('backup-catalogo-productos-', (string) $response->headers->get('content-disposition'));
     }
 
+    public function test_catalog_backup_prefers_official_category_banner_and_keeps_legacy_fallback(): void
+    {
+        $category = Category::create([
+            'name' => 'Banner detector test',
+            'slug' => 'banner-detector-test',
+            'description' => 'Temporal',
+            'active' => true,
+            'sort_order' => 998,
+        ]);
+        $officialPath = 'assets/categories/banner-detector-test.jpg';
+        $legacyPath = 'assets/gocenter/category-banner-detector-test.jpg';
+
+        File::ensureDirectoryExists(public_path('assets/categories'));
+        File::ensureDirectoryExists(public_path('assets/gocenter'));
+        File::put(public_path($officialPath), 'official');
+        File::put(public_path($legacyPath), 'legacy');
+
+        $service = app(CatalogBackupService::class);
+        $method = new \ReflectionMethod($service, 'categoryBanner');
+        $method->setAccessible(true);
+
+        try {
+            $banner = $method->invoke($service, $category);
+            $this->assertSame($officialPath, $banner['path']);
+
+            File::delete(public_path($officialPath));
+
+            $banner = $method->invoke($service, $category);
+            $this->assertSame($legacyPath, $banner['path']);
+        } finally {
+            File::delete([public_path($officialPath), public_path($legacyPath)]);
+        }
+    }
+
     public function test_super_admin_can_view_catalog_backup_category_selector(): void
     {
         $superAdmin = User::where('email', 'superadmin@local.test')->firstOrFail();
@@ -531,6 +570,110 @@ class StoreFlowTest extends TestCase
                 'category_ids' => [\App\Models\Category::query()->value('id')],
             ])
             ->assertForbidden();
+    }
+
+    public function test_super_admin_can_preview_catalog_cleanup(): void
+    {
+        $superAdmin = User::where('email', 'superadmin@local.test')->firstOrFail();
+        $category = \App\Models\Category::query()->firstOrFail();
+
+        $this->actingAs($superAdmin)
+            ->get(route('admin.catalog-cleanup.index', ['category_id' => $category->id]))
+            ->assertOk()
+            ->assertSee('Eliminar productos por categoria')
+            ->assertSee($category->name)
+            ->assertSee('Vista previa');
+    }
+
+    public function test_limited_admin_cannot_cleanup_catalog(): void
+    {
+        $admin = User::where('email', 'admin@local.test')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.catalog-cleanup.index'))
+            ->assertForbidden();
+    }
+
+    public function test_super_admin_can_delete_category_products_and_keep_shared_files(): void
+    {
+        $superAdmin = User::where('email', 'superadmin@local.test')->firstOrFail();
+        File::ensureDirectoryExists(public_path('assets/test-cleanup'));
+
+        $uniquePath = 'assets/test-cleanup/unique-cleanup.jpg';
+        $sharedPath = 'assets/test-cleanup/shared-cleanup.jpg';
+        File::put(public_path($uniquePath), 'unique');
+        File::put(public_path($sharedPath), 'shared');
+
+        $category = Category::create([
+            'name' => 'Categoria a borrar',
+            'slug' => 'categoria-a-borrar',
+            'description' => 'Temporal',
+            'active' => true,
+            'sort_order' => 999,
+        ]);
+        $otherCategory = Category::create([
+            'name' => 'Categoria protegida',
+            'slug' => 'categoria-protegida',
+            'description' => 'Temporal',
+            'active' => true,
+            'sort_order' => 1000,
+        ]);
+
+        $product = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Producto temporal',
+            'slug' => 'producto-temporal-cleanup',
+            'sku' => 'SKU-TEMP-CLEANUP',
+            'brand' => 'Test',
+            'description' => 'Producto temporal',
+            'price' => 100,
+            'stock' => 5,
+            'featured' => false,
+            'active' => true,
+        ]);
+        $otherProduct = Product::create([
+            'category_id' => $otherCategory->id,
+            'name' => 'Producto protegido',
+            'slug' => 'producto-protegido-cleanup',
+            'sku' => 'SKU-PROTECTED-CLEANUP',
+            'brand' => 'Test',
+            'description' => 'Producto protegido',
+            'price' => 100,
+            'stock' => 5,
+            'featured' => false,
+            'active' => true,
+        ]);
+
+        ProductVariant::create([
+            'product_id' => $product->id,
+            'sku' => 'SKU-TEMP-CLEANUP-V1',
+            'size' => 'M',
+            'price_modifier' => 0,
+            'stock' => 2,
+            'active' => true,
+        ]);
+        ProductImage::create(['product_id' => $product->id, 'path' => $uniquePath, 'alt' => 'Unica', 'sort_order' => 0]);
+        ProductImage::create(['product_id' => $product->id, 'path' => $sharedPath, 'alt' => 'Compartida', 'sort_order' => 1]);
+        ProductImage::create(['product_id' => $otherProduct->id, 'path' => $sharedPath, 'alt' => 'Compartida', 'sort_order' => 0]);
+
+        $this->actingAs($superAdmin)
+            ->delete(route('admin.catalog-cleanup.destroy'), [
+                'category_id' => $category->id,
+                'confirmation' => $category->slug,
+                'delete_files' => '1',
+            ])
+            ->assertRedirect(route('admin.catalog-cleanup.index', ['category_id' => $category->id]))
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+        $this->assertDatabaseMissing('product_images', ['product_id' => $product->id]);
+        $this->assertDatabaseMissing('product_variants', ['product_id' => $product->id]);
+        $this->assertDatabaseHas('products', ['id' => $otherProduct->id]);
+        $this->assertDatabaseHas('product_images', ['product_id' => $otherProduct->id, 'path' => $sharedPath]);
+        $this->assertFalse(File::exists(public_path($uniquePath)));
+        $this->assertTrue(File::exists(public_path($sharedPath)));
+
+        File::delete(public_path($sharedPath));
     }
 
     private function makePendingClipOrder(): Order

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CatalogBackupController as AdminCatalogBackupController;
+use App\Http\Controllers\Admin\CatalogCleanupController as AdminCatalogCleanupController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -83,6 +84,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('administradores', AdminUserController::class)->names('users')->parameters(['administradores' => 'user'])->except('show');
         Route::get('/backups/catalogo', [AdminCatalogBackupController::class, 'index'])->name('backups.catalog.index');
         Route::post('/backups/catalogo/descargar', [AdminCatalogBackupController::class, 'download'])->name('backups.catalog.download');
+        Route::get('/catalogo/limpieza', [AdminCatalogCleanupController::class, 'index'])->name('catalog-cleanup.index');
+        Route::delete('/catalogo/limpieza', [AdminCatalogCleanupController::class, 'destroy'])->name('catalog-cleanup.destroy');
         Route::get('/pedidos/{order}/imprimir', [AdminOrderController::class, 'print'])->name('orders.print');
         Route::post('/pedidos/{order}/recordatorio-pago', [AdminOrderController::class, 'sendPaymentReminder'])->name('orders.payment-reminder');
         Route::patch('/pedidos/{order}/estado', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
