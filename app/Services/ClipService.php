@@ -191,6 +191,24 @@ class ClipService
         ], true);
     }
 
+    public function isDiagnosticStatus(?string $status): bool
+    {
+        $status = Str::lower(trim((string) $status));
+
+        return $status === ''
+            || in_array($status, [
+                'test',
+                'ping',
+                'insert',
+                'update',
+                'webhook_test',
+                'webhook.test',
+                'verification',
+            ], true)
+            || str_contains($status, 'test')
+            || str_contains($status, 'ping');
+    }
+
     public function isFailedStatus(?string $status): bool
     {
         return in_array(Str::lower((string) $status), [

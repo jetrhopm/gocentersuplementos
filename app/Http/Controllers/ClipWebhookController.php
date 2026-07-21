@@ -28,7 +28,7 @@ class ClipWebhookController extends Controller
         $extracted = $clip->extract($payload);
 
         if (! $signatureValid) {
-            if ($this->isDiagnosticPing($payload, $extracted)) {
+            if ($this->isDiagnosticPing($clip, $payload, $extracted)) {
                 PaymentWebhookLog::firstOrCreate(
                     ['payload_hash' => $hash],
                     [
@@ -134,7 +134,7 @@ class ClipWebhookController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    private function isDiagnosticPing(array $payload, array $extracted): bool
+    private function isDiagnosticPing(ClipService $clip, array $payload, array $extracted): bool
     {
         $status = strtolower((string) ($extracted['status'] ?? $payload['type'] ?? $payload['event'] ?? ''));
         $hasPaymentReference = $extracted['payment_request_id']
@@ -146,9 +146,6 @@ class ClipWebhookController extends Controller
             return false;
         }
 
-        return $payload === []
-            || in_array($status, ['test', 'ping', 'webhook_test', 'webhook.test', 'verification'], true)
-            || str_contains($status, 'test')
-            || str_contains($status, 'ping');
+        return $payload === [] || $clip->isDiagnosticStatus($status);
     }
 }

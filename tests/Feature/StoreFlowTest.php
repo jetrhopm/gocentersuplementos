@@ -223,6 +223,21 @@ class StoreFlowTest extends TestCase
             ->assertJsonPath('message', 'Webhook activo.');
     }
 
+    public function test_clip_webhook_accepts_unsigned_insert_update_provider_tests_without_payment_data(): void
+    {
+        config(['services.clip.webhook_secret' => 'secret-for-signature']);
+
+        $this->postJson(route('webhooks.clip'), [
+            'event_type' => 'INSERT',
+            'id' => 'clip_test_insert',
+        ])->assertOk()->assertJsonPath('diagnostic', true);
+
+        $this->postJson(route('webhooks.clip'), [
+            'event_type' => 'UPDATE',
+            'id' => 'clip_test_update',
+        ])->assertOk()->assertJsonPath('diagnostic', true);
+    }
+
     public function test_clip_webhook_rejects_unsigned_payment_payload(): void
     {
         config(['services.clip.webhook_secret' => 'secret-for-signature']);
