@@ -61,6 +61,7 @@ Route::get('/pago/clip/retorno/{order}', [CheckoutController::class, 'clipReturn
 Route::get('/pago/clip/cancelado/{order}', [CheckoutController::class, 'clipCancelled'])->middleware(['signed', 'throttle:30,1'])->name('checkout.clip.cancelled');
 Route::get('/pago/clip/webhook', ClipWebhookController::class)->name('webhooks.clip.legacy.status');
 Route::post('/pago/clip/webhook', ClipWebhookController::class)->middleware('throttle:120,1')->name('webhooks.clip.legacy');
+Route::get('/webhooks/clip', ClipWebhookController::class)->name('webhooks.clip.status');
 Route::post('/webhooks/clip', ClipWebhookController::class)->middleware('throttle:120,1')->name('webhooks.clip');
 
 Route::prefix('admin')->name('admin.')->group(function () {

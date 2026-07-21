@@ -214,6 +214,15 @@ class StoreFlowTest extends TestCase
         ]);
     }
 
+    public function test_clip_webhook_status_route_is_available_for_provider_validation(): void
+    {
+        $this->get(route('webhooks.clip.status'))
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('provider', 'clip')
+            ->assertJsonPath('message', 'Webhook activo.');
+    }
+
     public function test_clip_webhook_rejects_unsigned_payment_payload(): void
     {
         config(['services.clip.webhook_secret' => 'secret-for-signature']);
