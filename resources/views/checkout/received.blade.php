@@ -2,6 +2,18 @@
 
 @section('title', 'Pedido '.$order->folio.' | '.config('app.name'))
 
+@if(! empty($metaPurchaseEvent))
+    @push('scripts')
+        <script>
+            window.goMetaTrack?.(
+                @json($metaPurchaseEvent['name']),
+                @json($metaPurchaseEvent['custom_data']),
+                @json($metaPurchaseEvent['event_id'])
+            );
+        </script>
+    @endpush
+@endif
+
 @section('content')
 <section class="container-page py-10" data-checkout-complete>
     <div class="grid gap-6 lg:grid-cols-[1fr_24rem]">

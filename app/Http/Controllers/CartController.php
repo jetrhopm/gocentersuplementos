@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Services\CartService;
+use App\Services\MetaAdsService;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
-    public function __construct(private CartService $cart)
+    public function __construct(
+        private CartService $cart,
+        private MetaAdsService $metaAds,
+    )
     {
     }
 
@@ -30,12 +34,22 @@ class CartController extends Controller
 
         $product = Product::with(['category', 'variants'])->findOrFail($data['product_id']);
         $this->cart->add($product, $data['variant_id'] ?? null, (int) $data['quantity']);
+        $metaEvent = $this->metaAds->browserEvent(
+            'AddToCart',
+            $this->metaAds->productPayload($product, (int) $data['quantity'])
+        );
 
         if ($request->expectsJson()) {
-            return response()->json(['ok' => true, 'count' => $this->cart->count()]);
+            return response()->json([
+                'ok' => true,
+                'count' => $this->cart->count(),
+                'meta_event' => $metaEvent,
+            ]);
         }
 
-        return back()->with('status', 'Producto agregado al carrito.');
+        return back()
+            ->with('status', 'Producto agregado al carrito.')
+            ->with('meta_event', $metaEvent);
     }
 
     public function update(Request $request, string $key)

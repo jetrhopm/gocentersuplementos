@@ -276,6 +276,21 @@
                         <label>Test event code</label>
                         <input name="META_TEST_EVENT_CODE" value="{{ $value('META_TEST_EVENT_CODE') }}" placeholder="Opcional para pruebas de eventos">
                     </div>
+                    <div>
+                        <button
+                            type="button"
+                            class="btn-secondary min-h-11"
+                            data-meta-test="{{ route('admin.settings.meta.test') }}"
+                            data-meta-test-form="#admin-settings-form"
+                            data-meta-test-result="#meta-test-result"
+                        >
+                            <i data-lucide="send" class="h-4 w-4"></i>
+                            Probar Meta CAPI
+                        </button>
+                        <div id="meta-test-result" class="mt-3 rounded-md border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-500">
+                            Envia un evento de prueba a Meta usando el Pixel ID y token visibles. Si el token queda vacio, se usa el guardado en el servidor.
+                        </div>
+                    </div>
                 </div>
             </div>
 

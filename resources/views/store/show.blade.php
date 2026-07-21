@@ -3,6 +3,18 @@
 @section('title', ($product->meta_title ?: $product->name).' | '.config('app.name'))
 @section('meta_description', $product->meta_description ?: \Illuminate\Support\Str::limit($product->description, 150))
 
+@if(! empty($metaViewContentEvent))
+    @push('scripts')
+        <script>
+            window.goMetaTrack?.(
+                @json($metaViewContentEvent['name']),
+                @json($metaViewContentEvent['custom_data']),
+                @json($metaViewContentEvent['event_id'])
+            );
+        </script>
+    @endpush
+@endif
+
 @section('content')
 <section class="container-page py-10">
     <div class="product-detail-grid grid gap-8 lg:grid-cols-[1.08fr_.92fr]">

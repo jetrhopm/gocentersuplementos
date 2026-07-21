@@ -7,6 +7,7 @@ use App\Http\Requests\AdminSettingsRequest;
 use App\Mail\TestMail;
 use App\Services\ClipService;
 use App\Services\EnvFileService;
+use App\Services\MetaAdsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -132,6 +133,29 @@ class SettingsController extends Controller
             'ok' => true,
             'message' => $message,
         ]);
+    }
+
+    public function testMeta(Request $request, EnvFileService $env, MetaAdsService $metaAds)
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403);
+
+        $values = $env->values($this->keys());
+
+        $data = $request->validate([
+            'META_PIXEL_ID' => ['nullable', 'string', 'max:60', 'regex:/^[0-9]+$/'],
+            'META_CAPI_ACCESS_TOKEN' => ['nullable', 'string', 'max:2000'],
+            'META_TEST_EVENT_CODE' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $result = $metaAds->testConnection([
+            'pixel_id' => $data['META_PIXEL_ID'] ?: ($values['META_PIXEL_ID'] ?? null),
+            'access_token' => $request->filled('META_CAPI_ACCESS_TOKEN')
+                ? $data['META_CAPI_ACCESS_TOKEN']
+                : ($values['META_CAPI_ACCESS_TOKEN'] ?? null),
+            'test_event_code' => $data['META_TEST_EVENT_CODE'] ?: ($values['META_TEST_EVENT_CODE'] ?? null),
+        ]);
+
+        return response()->json($result, $result['ok'] ? 200 : 422);
     }
 
     private function normalizeMailScheme(mixed $scheme): ?string

@@ -16,7 +16,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private CartService $cart)
+    public function __construct(
+        private CartService $cart,
+        private MetaAdsService $metaAds,
+    )
     {
     }
 
@@ -150,6 +153,8 @@ class OrderService
             } catch (Throwable $exception) {
                 report($exception);
             }
+
+            $this->metaAds->sendPurchase($order);
         }
 
         return $order;

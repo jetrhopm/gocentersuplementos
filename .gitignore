@@ -16,9 +16,14 @@
 /public/build
 /public/hot
 /public/storage
+/public/assets/gocenter/products
+/public/assets/wolfpak/products
+/public/assets/wolfpak/mochilas
 /storage/*.key
 /storage/pail
 /vendor
+/database/exports/*.sql
+/nuevos_productos
 Homestead.json
 Homestead.yaml
 Thumbs.db

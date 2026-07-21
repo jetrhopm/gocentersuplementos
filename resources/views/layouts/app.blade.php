@@ -50,6 +50,18 @@
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', @json($marketing['meta_pixel_id']));
             fbq('track', 'PageView');
+            window.goMetaTrack = function(eventName, customData, eventId) {
+                if (typeof fbq !== 'function') {
+                    return;
+                }
+
+                if (eventId) {
+                    fbq('track', eventName, customData || {}, { eventID: eventId });
+                    return;
+                }
+
+                fbq('track', eventName, customData || {});
+            };
         </script>
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -251,5 +263,15 @@
         </a>
     </nav>
 </div>
+@if(($marketing['meta_enabled'] ?? false) && filled($marketing['meta_pixel_id'] ?? null) && session('meta_event'))
+    <script>
+        window.goMetaTrack?.(
+            @json(session('meta_event.name')),
+            @json(session('meta_event.custom_data', [])),
+            @json(session('meta_event.event_id'))
+        );
+    </script>
+@endif
+@stack('scripts')
 </body>
 </html>

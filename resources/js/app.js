@@ -263,6 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         el.textContent = data.count;
                         el.classList.toggle('hidden', Number(data.count) < 1);
                     });
+                    if (data.meta_event && window.goMetaTrack) {
+                        window.goMetaTrack(data.meta_event.name, data.meta_event.custom_data || {}, data.meta_event.event_id);
+                    }
                     showToast('Producto agregado al carrito.', 'success');
                 } else {
                     const message = data.message
@@ -1087,6 +1090,47 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 result.className = 'mt-3 rounded-md border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-100';
                 result.textContent = 'No se pudo conectar con el servidor para probar el correo.';
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-meta-test]').forEach((button) => {
+        const result = document.querySelector(button.dataset.metaTestResult);
+        const form = document.querySelector(button.dataset.metaTestForm);
+
+        button.addEventListener('click', async () => {
+            if (! form || ! result) {
+                return;
+            }
+
+            button.disabled = true;
+            result.textContent = 'Enviando evento de prueba a Meta...';
+            result.className = 'mt-3 rounded-md border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-300';
+
+            try {
+                const payload = new FormData(form);
+                payload.delete('_method');
+
+                const response = await fetch(button.dataset.metaTest, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': form.querySelector('input[name="_token"]')?.value || '',
+                        'Accept': 'application/json',
+                    },
+                    body: payload,
+                });
+                const data = await response.json();
+                const ok = response.ok && data.ok;
+
+                result.className = ok
+                    ? 'mt-3 rounded-md border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-100'
+                    : 'mt-3 rounded-md border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-100';
+                result.textContent = data.message || (ok ? 'Meta probado correctamente.' : 'No se pudo probar Meta.');
+            } catch (error) {
+                result.className = 'mt-3 rounded-md border border-red-400/30 bg-red-400/10 p-3 text-sm text-red-100';
+                result.textContent = 'No se pudo conectar con el servidor para probar Meta.';
             } finally {
                 button.disabled = false;
             }

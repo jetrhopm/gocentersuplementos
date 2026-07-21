@@ -3,6 +3,18 @@
 @section('title', 'Catalogo | '.config('app.name'))
 @section('meta_description', 'Catalogo filtrable de suplementos, proteinas, creatinas, accesorios y paquetes deportivos.')
 
+@if(! empty($metaSearchEvent))
+    @push('scripts')
+        <script>
+            window.goMetaTrack?.(
+                @json($metaSearchEvent['name']),
+                @json($metaSearchEvent['custom_data']),
+                @json($metaSearchEvent['event_id'])
+            );
+        </script>
+    @endpush
+@endif
+
 @section('content')
 @php
     $activeFilters = collect([

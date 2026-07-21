@@ -76,6 +76,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/configuracion', [AdminSettingsController::class, 'index'])->name('settings.index');
         Route::post('/configuracion/clip/probar', [AdminSettingsController::class, 'testClip'])->name('settings.clip.test');
         Route::post('/configuracion/correo/probar', [AdminSettingsController::class, 'testMail'])->name('settings.mail.test');
+        Route::post('/configuracion/meta/probar', [AdminSettingsController::class, 'testMeta'])->name('settings.meta.test');
         Route::put('/configuracion', [AdminSettingsController::class, 'update'])->name('settings.update');
         Route::resource('productos', AdminProductController::class)->names('products')->parameters(['productos' => 'product'])->except('show');
         Route::delete('/productos/{product}/imagenes/{image}', [AdminProductController::class, 'destroyImage'])->name('products.images.destroy');

@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Services\CartService;
 use App\Services\ClipService;
+use App\Services\MetaAdsService;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
@@ -18,6 +19,7 @@ class CheckoutController extends Controller
         private CartService $cart,
         private OrderService $orders,
         private ClipService $clip,
+        private MetaAdsService $metaAds,
     ) {
     }
 
@@ -27,9 +29,17 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->withErrors(['cart' => 'Agrega productos antes de pagar.']);
         }
 
+        $items = $this->cart->items();
+        $totals = $this->cart->totals();
+        $metaInitiateCheckoutEvent = $this->metaAds->browserEvent(
+            'InitiateCheckout',
+            $this->metaAds->cartPayload($items, $totals)
+        );
+
         return view('checkout.show', [
-            'items' => $this->cart->items(),
-            'totals' => $this->cart->totals(),
+            'items' => $items,
+            'totals' => $totals,
+            'metaInitiateCheckoutEvent' => $metaInitiateCheckoutEvent,
         ]);
     }
 
@@ -133,9 +143,14 @@ class CheckoutController extends Controller
     {
         $order->load(['items', 'payment']);
 
+        $metaPurchaseEvent = $order->status === Order::STATUS_PAID
+            ? $this->metaAds->browserEvent('Purchase', $this->metaAds->orderPayload($order), $this->metaAds->purchaseEventId($order))
+            : null;
+
         return view('checkout.received', [
             'order' => $order,
             'bank' => config('services.bank_transfer'),
+            'metaPurchaseEvent' => $metaPurchaseEvent,
         ]);
     }
 

@@ -2,6 +2,18 @@
 
 @section('title', 'Pagar pedido | '.config('app.name'))
 
+@if(! empty($metaInitiateCheckoutEvent))
+    @push('scripts')
+        <script>
+            window.goMetaTrack?.(
+                @json($metaInitiateCheckoutEvent['name']),
+                @json($metaInitiateCheckoutEvent['custom_data']),
+                @json($metaInitiateCheckoutEvent['event_id'])
+            );
+        </script>
+    @endpush
+@endif
+
 @php
     $shippingCost = $totals['shipping_cost'] ?? (float) config('services.store.shipping_cost');
     $freeShippingFrom = $totals['free_shipping_from'] ?? (float) config('services.store.free_shipping_from');

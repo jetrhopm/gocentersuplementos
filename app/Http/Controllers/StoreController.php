@@ -5,11 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\MetaAdsService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class StoreController extends Controller
 {
+    public function __construct(private MetaAdsService $metaAds)
+    {
+    }
+
     public function home()
     {
         $featured = Product::active()
@@ -105,7 +110,17 @@ class StoreController extends Controller
         $brands = Product::active()->whereNotNull('brand')->distinct()->orderBy('brand')->pluck('brand');
         $sizes = \App\Models\ProductVariant::whereNotNull('size')->distinct()->orderBy('size')->pluck('size');
 
-        return view('store.products', compact('products', 'categories', 'brands', 'sizes', 'currentCategory'));
+        $metaSearchEvent = null;
+
+        if ($request->filled('q')) {
+            $metaSearchEvent = $this->metaAds->browserEvent('Search', [
+                'search_string' => trim($request->string('q')),
+                'content_ids' => $products->getCollection()->map(fn (Product $product) => (string) ($product->sku ?: $product->slug ?: $product->id))->values()->all(),
+                'content_type' => 'product',
+            ]);
+        }
+
+        return view('store.products', compact('products', 'categories', 'brands', 'sizes', 'currentCategory', 'metaSearchEvent'));
     }
 
     private function productsBySlugs(array $slugs, int $take)
@@ -141,7 +156,12 @@ class StoreController extends Controller
             ->take(4)
             ->get();
 
-        return view('store.show', compact('product', 'related'));
+        $metaViewContentEvent = $this->metaAds->browserEvent(
+            'ViewContent',
+            $this->metaAds->productPayload($product)
+        );
+
+        return view('store.show', compact('product', 'related', 'metaViewContentEvent'));
     }
 
     public function lookup()
@@ -177,9 +197,14 @@ class StoreController extends Controller
     {
         $order->load(['items', 'payment']);
 
+        $metaPurchaseEvent = $order->status === Order::STATUS_PAID
+            ? $this->metaAds->browserEvent('Purchase', $this->metaAds->orderPayload($order), $this->metaAds->purchaseEventId($order))
+            : null;
+
         return view('checkout.received', [
             'order' => $order,
             'bank' => config('services.bank_transfer'),
+            'metaPurchaseEvent' => $metaPurchaseEvent,
         ]);
     }
 
