@@ -11,6 +11,22 @@ Tienda virtual Laravel para venta de proteinas, suplementos, accesorios y ropa d
 - Alpine.js
 - Lucide icons
 
+## Catalogo, imagenes y SQL versionados
+
+El repositorio es privado y funciona como fuente completa del proyecto. Por decision del proyecto, se versionan codigo, assets publicos, imagenes de catalogo y SQL utiles para reinstalar la tienda.
+
+Rutas principales:
+
+- Marca e identidad: `public/assets/brand/`
+- Imagenes de categorias: `public/assets/categories/`
+- Productos Go Center: `public/assets/gocenter/products/`
+- Productos Wolfpak/mochilas: `public/assets/wolfpak/products/`
+- Assets compilados de Vite: `public/build/`
+- SQL de carga/exportacion: `database/exports/`
+- SQL base documentado: `database/base_datos_inicial/`
+
+Aunque el repositorio sea privado, nunca se deben versionar `.env`, pedidos reales, datos de clientes, pagos reales, claves Clip, claves SMTP, datos bancarios reales ni respaldos completos de produccion.
+
 ## Instalacion local
 
 1. Instala dependencias:
@@ -154,6 +170,17 @@ Secciones incluidas:
 
 Los campos sensibles se dejan vacios para conservar el valor actual; al guardar se actualiza `.env` del lado servidor y se limpia cache de configuracion/rutas.
 
+## Meta Ads, Google y buscadores
+
+La tienda tiene configuracion preparada para marketing desde el panel de super administrador.
+
+- Meta Pixel puede activarse o desactivarse sin tocar codigo.
+- Conversion API de Meta queda preparada del lado servidor cuando exista token.
+- Google Search/SEO queda cubierto por titles, descriptions, rutas amigables, sitemap y robots.
+- Google Ads queda preparado para IDs de medicion/conversion cuando se contraten campanas.
+
+Si Meta o Google no se configuran, la tienda funciona normal. No se cargan scripts ni eventos de publicidad cuando estan desactivados o sin credenciales.
+
 Flujo:
 
 1. Se crea el pedido local con estado `pendiente_clip`.
@@ -254,6 +281,81 @@ php artisan serve
 php artisan test
 ```
 
+## Despliegue en Hostinger
+
+En Hostinger, Laravel completo debe vivir fuera de `public_html`:
+
+```text
+/home/USUARIO/gocentersuplementos
+```
+
+`public_html` solo debe exponer archivos publicos y un `index.php` puente:
+
+```text
+/home/USUARIO/domains/DOMINIO/public_html
+```
+
+Actualizacion recomendada despues de hacer `git pull`:
+
+```bash
+cd ~/gocentersuplementos
+git pull origin main
+composer install --no-dev --optimize-autoloader
+
+PUB="$HOME/domains/gocentersuplementos.com.mx/public_html"
+
+rsync -a public/build/ "$PUB/build/"
+rsync -a public/assets/ "$PUB/assets/"
+rsync -a public/favicon.ico "$PUB/favicon.ico"
+rsync -a public/robots.txt "$PUB/robots.txt"
+rsync -a public/.htaccess "$PUB/.htaccess"
+
+cat > "$PUB/index.php" <<'PHP'
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+$basePath = '/home/u705161084/gocentersuplementos';
+
+if (file_exists($maintenance = $basePath.'/storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+require $basePath.'/vendor/autoload.php';
+
+/** @var Application $app */
+$app = require_once $basePath.'/bootstrap/app.php';
+
+$app->handleRequest(Request::capture());
+PHP
+
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+No uses `cp -R public/. public_html/` en actualizaciones normales porque puede sobrescribir el `index.php` especial de Hostinger.
+
+Rollback rapido si un deploy rompe produccion:
+
+```bash
+cd ~/gocentersuplementos
+git reset --hard COMMIT_BUENO
+
+PUB="$HOME/domains/gocentersuplementos.com.mx/public_html"
+rsync -a public/build/ "$PUB/build/"
+rsync -a public/assets/ "$PUB/assets/"
+
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
 ## GitHub
 
 El proyecto esta listo para repositorio con `.gitignore` protegiendo:
@@ -261,9 +363,16 @@ El proyecto esta listo para repositorio con `.gitignore` protegiendo:
 - `.env`
 - `vendor`
 - `node_modules`
-- `public/build`
 - `public/storage`
 - logs y caches locales
+
+El repositorio privado si puede incluir `public/build`, imagenes de productos y SQL de catalogo cuando el objetivo sea reinstalar la tienda completa en Hostinger.
+
+Nota sobre `public/build`: la carpeta aparece en `.gitignore` para evitar ruido de builds locales, pero cuando se necesite subir una compilacion lista para Hostinger se puede versionar de forma intencional con:
+
+```bash
+git add -f public/build
+```
 
 Antes de subir, confirma que `.env.example` no tenga secretos reales.
 

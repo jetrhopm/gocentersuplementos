@@ -2,6 +2,14 @@
 
 ## [Unreleased](https://github.com/laravel/laravel/compare/v12.12.1...12.x)
 
+## Go Center - 2026-07-21
+
+- Documenta el flujo limpio de despliegue en Hostinger con Laravel fuera de `public_html` y `index.php` puente dentro de `public_html`.
+- Documenta actualizaciones seguras usando sincronizacion de `public/build`, `public/assets`, `favicon.ico`, `robots.txt` y `.htaccess` para no sobrescribir el `index.php` especial.
+- Aclara que el repositorio privado puede versionar imagenes de productos, assets publicos y SQL de catalogo, pero no `.env`, secretos, pedidos reales, datos de clientes, pagos ni datos bancarios reales.
+- Actualiza la documentacion de base de datos inicial y catalogo para reflejar la politica actual del proyecto.
+- Agrega notas de rollback rapido y diagnostico de CSS/imagenes para Hostinger.
+
 ## [v12.12.1](https://github.com/laravel/laravel/compare/v12.12.0...v12.12.1) - 2026-03-10
 
 * [12.x] Makes imports consistent by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/laravel/pull/6760

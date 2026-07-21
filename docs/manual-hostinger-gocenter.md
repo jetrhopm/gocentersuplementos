@@ -48,6 +48,8 @@ Node.js no es obligatorio en Hostinger si el proyecto ya sube los assets compila
 public/build
 ```
 
+El repositorio privado tambien puede incluir imagenes de productos y SQL de catalogo para reinstalar la tienda. Eso no cambia la regla de seguridad: `.env`, pedidos reales, datos de clientes, pagos reales, claves Clip, SMTP y datos bancarios reales nunca deben ir al repositorio.
+
 ---
 
 ## 3. Crear token de GitHub para repositorio privado
@@ -264,6 +266,8 @@ El proyecto incluye un SQL limpio para cargar catalogo y usuarios administrativo
 database/exports/gocenter_catalog_admin_seed.sql
 ```
 
+Tambien pueden existir SQL separados por categoria o cargas recientes dentro de `database/exports`. Antes de importar en produccion, confirma que el SQL no incluya pedidos reales, datos de compradores ni claves sensibles.
+
 Importalo asi:
 
 ```bash
@@ -308,7 +312,7 @@ Limpia la carpeta si el dominio esta nuevo:
 rm -rf /home/USUARIO/domains/DOMINIO/public_html/*
 ```
 
-Copia los archivos publicos de Laravel:
+Copia los archivos publicos de Laravel. En una instalacion nueva puedes copiar todo `public/.` porque todavia vas a corregir el `index.php` en el siguiente paso:
 
 ```bash
 cp -R ~/gocentersuplementos/public/. /home/USUARIO/domains/DOMINIO/public_html/
@@ -544,10 +548,58 @@ Cada vez que subas cambios al repositorio:
 cd ~/gocentersuplementos
 git pull origin main
 composer install --no-dev --optimize-autoloader
-cp -R ~/gocentersuplementos/public/. /home/USUARIO/domains/DOMINIO/public_html/
 ```
 
-Despues de copiar `public/.`, vuelve a ajustar `public_html/index.php` si fue sobrescrito.
+Actualiza solo los archivos publicos necesarios. Esto evita pisar el `index.php` especial que apunta desde `public_html` hacia Laravel:
+
+```bash
+PUB="$HOME/domains/DOMINIO/public_html"
+
+rsync -a public/build/ "$PUB/build/"
+rsync -a public/assets/ "$PUB/assets/"
+rsync -a public/favicon.ico "$PUB/favicon.ico"
+rsync -a public/robots.txt "$PUB/robots.txt"
+rsync -a public/.htaccess "$PUB/.htaccess"
+```
+
+Si el servidor no tiene `rsync`, usa `cp` carpeta por carpeta:
+
+```bash
+mkdir -p "$PUB/build" "$PUB/assets"
+cp -R public/build/. "$PUB/build/"
+cp -R public/assets/. "$PUB/assets/"
+cp public/favicon.ico "$PUB/favicon.ico"
+cp public/robots.txt "$PUB/robots.txt"
+cp public/.htaccess "$PUB/.htaccess"
+```
+
+Despues asegura que `public_html/index.php` siga siendo el puente correcto:
+
+```bash
+cat > "$PUB/index.php" <<'PHP'
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
+
+define('LARAVEL_START', microtime(true));
+
+$basePath = '/home/USUARIO/gocentersuplementos';
+
+if (file_exists($maintenance = $basePath.'/storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
+require $basePath.'/vendor/autoload.php';
+
+/** @var Application $app */
+$app = require_once $basePath.'/bootstrap/app.php';
+
+$app->handleRequest(Request::capture());
+PHP
+```
+
+Cambia `USUARIO` por el usuario real del hosting antes de pegarlo si estas preparando el comando fuera del servidor.
 
 Luego:
 
@@ -573,10 +625,36 @@ ls -la /home/USUARIO/domains/DOMINIO/public_html/build/assets
 Si no existen, copia de nuevo:
 
 ```bash
-cp -R ~/gocentersuplementos/public/. /home/USUARIO/domains/DOMINIO/public_html/
+PUB="$HOME/domains/DOMINIO/public_html"
+rsync -a ~/gocentersuplementos/public/build/ "$PUB/build/"
+rsync -a ~/gocentersuplementos/public/assets/ "$PUB/assets/"
 ```
 
-Despues revisa `index.php`, porque pudo ser sobrescrito.
+Despues revisa `index.php`. Debe apuntar a `/home/USUARIO/gocentersuplementos`, no a carpetas dentro de `public_html`.
+
+### Imagenes no cargan
+
+Verifica que los archivos existan fisicamente y que respondan con HTTP 200:
+
+```bash
+PUB="$HOME/domains/DOMINIO/public_html"
+ls -la "$PUB/assets/brand"
+ls -la "$PUB/assets/categories"
+curl -I https://DOMINIO/assets/brand/logo.jpg
+curl -I https://DOMINIO/assets/categories/packs-gocenter.jpg
+```
+
+Si falta una carpeta completa, sincroniza `public/assets`.
+
+### La pagina se cae despues de actualizar
+
+Primero revisa el `index.php` puente:
+
+```bash
+sed -n '1,35p' "$HOME/domains/DOMINIO/public_html/index.php"
+```
+
+Debe tener `$basePath = '/home/USUARIO/gocentersuplementos';`. Si aparece `__DIR__` apuntando a `vendor` o `bootstrap` dentro de `public_html`, vuelve a escribir el `index.php` del paso 21.
 
 ### Laravel muestra pagina en blanco o error 500
 
@@ -619,6 +697,26 @@ Usa enlace manual:
 rm -rf /home/USUARIO/domains/DOMINIO/public_html/storage
 ln -s /home/USUARIO/gocentersuplementos/storage/app/public /home/USUARIO/domains/DOMINIO/public_html/storage
 ```
+
+### Rollback rapido
+
+Si una actualizacion rompe produccion, regresa al ultimo commit bueno:
+
+```bash
+cd ~/gocentersuplementos
+git reset --hard COMMIT_BUENO
+
+PUB="$HOME/domains/DOMINIO/public_html"
+rsync -a public/build/ "$PUB/build/"
+rsync -a public/assets/ "$PUB/assets/"
+
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+Guarda siempre el hash del ultimo commit que funciono antes de actualizar.
 
 ---
 
@@ -671,4 +769,4 @@ Cada hosting puede cambiar rutas, version de PHP y restricciones. La regla princ
 - Solo el contenido de `public` vive dentro de `public_html`.
 - `public_html/index.php` debe apuntar al proyecto real.
 - `.env` nunca debe estar dentro de `public_html`.
-
+- En actualizaciones normales, sincroniza `build`, `assets`, `favicon.ico`, `robots.txt` y `.htaccess`; no copies todo `public/.` si no vas a reescribir el `index.php`.

@@ -1,5 +1,24 @@
 # Registro de cambios — Go Center Suplementos
 
+## Actualizacion 2026-07-21: documentacion de despliegue, catalogo versionado y reglas Hostinger
+
+**Objetivo:** dejar documentado el flujo real de trabajo despues de las pruebas en produccion: el proyecto vive fuera de `public_html`, `public_html/index.php` es un puente obligatorio, los assets se sincronizan por carpetas y el repositorio privado puede guardar imagenes/SQL de catalogo sin incluir secretos ni pedidos reales.
+
+**Cambios documentales:**
+- `README.md`: agrega secciones de catalogo/imagenes/SQL versionados, Meta Ads/Google, despliegue Hostinger, comandos de actualizacion, rollback y reglas para GitHub privado.
+- `docs/manual-hostinger-gocenter.md`: actualiza el flujo de instalacion y actualizacion para evitar copiar todo `public/.` sobre `public_html` en cada deploy. Se documenta `rsync` de `public/build`, `public/assets`, `favicon.ico`, `robots.txt` y `.htaccess`.
+- `docs/manual-hostinger-gocenter.md`: agrega el `index.php` puente recomendado con `$basePath = '/home/USUARIO/gocentersuplementos';`.
+- `docs/manual-hostinger-gocenter.md`: agrega diagnostico para imagenes, CSS, `index.php` incorrecto y rollback rapido con `git reset --hard COMMIT_BUENO`.
+- `database/base_datos_inicial/README.md`: actualiza la politica de SQL. Ahora permite catalogo inicial o por categoria en repositorio privado, pero prohibe pedidos reales, datos de clientes, claves Clip, SMTP, datos bancarios y respaldos completos de produccion.
+
+**Regla operativa actual:**
+- Codigo Laravel completo: `~/gocentersuplementos`.
+- Publico del dominio: `~/domains/gocentersuplementos.com.mx/public_html`.
+- En actualizaciones normales no usar `cp -R public/. public_html/` salvo instalacion nueva o si se reescribe inmediatamente el `index.php`.
+- Assets y SQL de catalogo pueden versionarse; secretos y ventas reales no.
+
+---
+
 ## Actualizacion 2026-07-14: pagos pendientes, consulta de pedido, datos visibles y control de superadmin
 
 **Objetivo:** cerrar problemas detectados en pruebas locales antes de enviar a produccion: pedidos Clip pendientes que necesitaban reintento, consulta publica que podia caer en 419 por CSRF vencido, vista de pedido recibido incompleta para el comprador, eliminacion controlada de pedidos y login admin con datos precargados.
