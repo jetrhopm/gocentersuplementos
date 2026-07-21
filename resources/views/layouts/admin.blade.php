@@ -34,6 +34,7 @@
                 <a class="admin-nav-link" href="{{ route('admin.orders.index') }}">Pedidos</a>
                 @if(auth()->user()?->isSuperAdmin())
                     <a class="admin-nav-link" href="{{ route('admin.users.index') }}">Administradores</a>
+                    <a class="admin-nav-link" href="{{ route('admin.backups.catalog.index') }}">Backups</a>
                 @endif
                 <a class="admin-nav-link" href="{{ route('admin.settings.index') }}">Configuracion</a>
             </nav>
@@ -81,6 +82,10 @@
                     <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.users.index') }}">
                         <i data-lucide="users-round" class="h-4 w-4"></i>
                         Administradores
+                    </a>
+                    <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.backups.catalog.index') }}">
+                        <i data-lucide="database-backup" class="h-4 w-4"></i>
+                        Backups
                     </a>
                 @endif
                 <a class="admin-nav-link flex items-center gap-3" href="{{ route('admin.settings.index') }}">

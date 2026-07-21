@@ -495,6 +495,44 @@ class StoreFlowTest extends TestCase
         $this->assertDatabaseHas('orders', ['id' => $order->id]);
     }
 
+    public function test_super_admin_can_download_catalog_backup(): void
+    {
+        $superAdmin = User::where('email', 'superadmin@local.test')->firstOrFail();
+        $categoryIds = \App\Models\Category::query()->limit(2)->pluck('id')->all();
+
+        $response = $this->actingAs($superAdmin)
+            ->post(route('admin.backups.catalog.download'), [
+                'category_ids' => $categoryIds,
+            ]);
+
+        $response->assertOk();
+        $this->assertStringContainsString('backup-catalogo-productos-', (string) $response->headers->get('content-disposition'));
+    }
+
+    public function test_super_admin_can_view_catalog_backup_category_selector(): void
+    {
+        $superAdmin = User::where('email', 'superadmin@local.test')->firstOrFail();
+        $category = \App\Models\Category::query()->firstOrFail();
+
+        $this->actingAs($superAdmin)
+            ->get(route('admin.backups.catalog.index'))
+            ->assertOk()
+            ->assertSee('Catalogo por categorias')
+            ->assertSee('Marcar todas')
+            ->assertSee($category->name);
+    }
+
+    public function test_limited_admin_cannot_download_catalog_backup(): void
+    {
+        $admin = User::where('email', 'admin@local.test')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->post(route('admin.backups.catalog.download'), [
+                'category_ids' => [\App\Models\Category::query()->value('id')],
+            ])
+            ->assertForbidden();
+    }
+
     private function makePendingClipOrder(): Order
     {
         $order = Order::create([
