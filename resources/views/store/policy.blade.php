@@ -37,7 +37,7 @@
                 </div>
                 <div>
                     <h2 class="text-xl font-black uppercase text-white">Pagos</h2>
-                    <p class="mt-3">Los pagos con tarjeta se procesan mediante Clip bajo estandares de seguridad para pagos en linea. En pagos por transferencia, usamos la referencia o comprobante solo para validar el pedido.</p>
+                    <p class="mt-3">Los pagos con tarjeta se procesan mediante Clip bajo estandares de seguridad para pagos en linea. En pagos por transferencia u OXXO, usamos la referencia o comprobante solo para validar el pedido.</p>
                 </div>
                 <div>
                     <h2 class="text-xl font-black uppercase text-white">Proteccion y conservacion</h2>
@@ -58,7 +58,7 @@
                 </div>
                 <div>
                     <h2 class="text-xl font-black uppercase text-white">Pagos</h2>
-                    <p class="mt-3">Aceptamos transferencia bancaria y pago con Clip. En transferencia, el pedido queda pendiente hasta validar el pago. En Clip, la confirmacion depende de la respuesta del proveedor de pago.</p>
+                    <p class="mt-3">Aceptamos transferencia bancaria, pago en OXXO y pago con Clip. En transferencia u OXXO, el pedido queda pendiente hasta validar el pago. En Clip, la confirmacion depende de la respuesta del proveedor de pago.</p>
                 </div>
                 <div>
                     <h2 class="text-xl font-black uppercase text-white">Envio y recepcion</h2>

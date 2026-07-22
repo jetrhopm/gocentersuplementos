@@ -306,6 +306,22 @@
                         </span>
                         <span class="payment-check"><i data-lucide="check" class="h-4 w-4"></i></span>
                     </label>
+                    <label class="payment-card oxxo">
+                        <input type="radio" name="payment_method" value="oxxo" @checked(old('payment_method') === 'oxxo') class="sr-only">
+                        <span class="payment-icon"><i data-lucide="qr-code" class="h-6 w-6"></i></span>
+                        <span class="min-w-0">
+                            <span class="flex flex-wrap items-center gap-2">
+                                <span class="font-black uppercase text-white">Pago en OXXO</span>
+                                <span class="badge">QR</span>
+                            </span>
+                            <span class="mt-2 block text-sm leading-6 text-zinc-400">Genera tu pedido y te mostramos un codigo QR para pagar en tienda OXXO. Tambien se envia a tu correo.</span>
+                            <span class="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase accent-text">
+                                <i data-lucide="store" class="h-3.5 w-3.5"></i>
+                                Validacion manual del pago
+                            </span>
+                        </span>
+                        <span class="payment-check"><i data-lucide="check" class="h-4 w-4"></i></span>
+                    </label>
                 </div>
                 <div class="checkout-step-actions">
                     <button type="button" class="btn-secondary min-h-12" data-checkout-prev>

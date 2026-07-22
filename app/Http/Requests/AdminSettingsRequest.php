@@ -52,6 +52,10 @@ class AdminSettingsRequest extends FormRequest
             'BANK_ACCOUNT_NUMBER' => ['nullable', 'string', 'max:80'],
             'BANK_CLABE' => ['nullable', 'string', 'max:30'],
             'BANK_TRANSFER_INSTRUCTIONS' => ['nullable', 'string', 'max:500'],
+            'OXXO_PAYMENT_QR_PATH' => ['nullable', 'string', 'max:220'],
+            'OXXO_PAYMENT_REFERENCE' => ['nullable', 'string', 'max:80'],
+            'OXXO_PAYMENT_INSTRUCTIONS' => ['nullable', 'string', 'max:700'],
+            'STORE_ADMIN_ORDER_EMAILS' => ['nullable', 'string', 'max:600'],
 
             'CLIP_BASE_URL' => ['required', 'url', 'max:180'],
             'CLIP_AUTH_SCHEME' => ['required', Rule::in(['Bearer', 'Basic'])],

@@ -69,7 +69,7 @@
                 </div>
             </div>
 
-            @if($order->isPayable())
+            @if($order->payment_method === 'clip' && $order->isPayable())
                 <div class="panel p-6">
                     <div class="flex items-center gap-3">
                         <span class="checkout-heading-icon"><i data-lucide="credit-card" class="h-5 w-5"></i></span>
@@ -119,6 +119,50 @@
                         >
                         <button class="btn-secondary">Guardar referencia</button>
                     </form>
+                </div>
+            @endif
+
+            @if($order->payment_method === 'oxxo')
+                @php
+                    $oxxoQrPath = trim((string) ($oxxo['qr_path'] ?? ''), '/');
+                    $oxxoQrUrl = $oxxoQrPath !== '' ? asset($oxxoQrPath) : null;
+                    $oxxoReference = $oxxo['reference'] ?: $order->transferNumericReference();
+                @endphp
+                <div class="panel p-6">
+                    <div class="flex items-center gap-3">
+                        <span class="checkout-heading-icon"><i data-lucide="qr-code" class="h-5 w-5"></i></span>
+                        <div>
+                            <h2 class="text-xl font-black uppercase text-white">Pago en OXXO</h2>
+                            <p class="mt-1 text-sm text-zinc-400">Muestra este codigo en OXXO para realizar tu pago. Tambien lo enviamos a tu correo.</p>
+                        </div>
+                    </div>
+                    <div class="mt-5 grid gap-5 lg:grid-cols-[18rem_1fr]">
+                        @if($oxxoQrUrl)
+                            <div class="rounded-xl border border-zinc-800 bg-white p-4">
+                                <img src="{{ $oxxoQrUrl }}" alt="Codigo QR para pago en OXXO" class="mx-auto w-full rounded-lg">
+                            </div>
+                        @endif
+                        <div class="grid content-start gap-4 text-sm text-zinc-300">
+                            <div class="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+                                <div class="text-zinc-500">Referencia, solo si el cajero la solicita</div>
+                                <div class="mt-2 break-words text-2xl font-black text-white">{{ $oxxoReference }}</div>
+                            </div>
+                            <p class="leading-6 text-zinc-400">{{ $oxxo['instructions'] }}</p>
+                            <div class="rounded-lg border border-amber-400/30 bg-amber-400/10 p-4 text-sm leading-6 text-amber-100">
+                                Conserva tu comprobante. Si capturas la referencia del ticket, nos ayudas a identificar tu pago mas rapido.
+                            </div>
+                            <form method="POST" action="{{ URL::signedRoute('checkout.transfer.reference', $order) }}" class="grid gap-3 sm:grid-cols-[1fr_auto]">
+                                @csrf
+                                <input
+                                    name="transfer_reference"
+                                    value="{{ old('transfer_reference', $order->transfer_reference) }}"
+                                    placeholder="Referencia de tu ticket OXXO (opcional)"
+                                    maxlength="160"
+                                >
+                                <button class="btn-secondary">Guardar referencia</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             @endif
 

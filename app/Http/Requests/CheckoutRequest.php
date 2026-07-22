@@ -37,7 +37,7 @@ class CheckoutRequest extends FormRequest
             'postal_code' => ['required', 'digits:5'],
             'references' => ['nullable', 'string', 'max:500'],
             'customer_notes' => ['nullable', 'string', 'max:500'],
-            'payment_method' => ['required', 'in:transferencia,clip'],
+            'payment_method' => ['required', 'in:transferencia,clip,oxxo'],
             'website' => ['prohibited'],
         ];
     }

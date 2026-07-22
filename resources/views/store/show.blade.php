@@ -106,7 +106,7 @@
             </form>
             <div class="mt-6 grid gap-3 border-t divider-line pt-5 text-sm text-zinc-400">
                 <div class="flex items-center gap-2"><i data-lucide="boxes" class="accent-text h-4 w-4"></i> Stock base: {{ $product->stock }}</div>
-                <div class="flex items-center gap-2"><i data-lucide="shield-check" class="accent-text h-4 w-4"></i> Pago con transferencia o Clip, procesado con estandares de seguridad.</div>
+                <div class="flex items-center gap-2"><i data-lucide="shield-check" class="accent-text h-4 w-4"></i> Pago con transferencia, OXXO o Clip, procesado con estandares de seguridad.</div>
             </div>
         </div>
     </div>

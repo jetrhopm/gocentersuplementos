@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Mail\AdminNewOrderMail;
+use App\Mail\AdminPaymentApprovedMail;
 use App\Mail\OrderReceiptMail;
 use App\Models\Coupon;
 use App\Models\InventoryMovement;
@@ -39,7 +41,11 @@ class OrderService
             }
 
             $totals = $this->cart->totals();
-            $status = $paymentMethod === 'clip' ? Order::STATUS_PENDING_CLIP : Order::STATUS_PENDING_TRANSFER;
+            $status = match ($paymentMethod) {
+                'clip' => Order::STATUS_PENDING_CLIP,
+                'oxxo' => Order::STATUS_PENDING_OXXO,
+                default => Order::STATUS_PENDING_TRANSFER,
+            };
 
             if ($totals['coupon'] instanceof Coupon) {
                 $coupon = Coupon::whereKey($totals['coupon']->id)->lockForUpdate()->first();
@@ -91,7 +97,11 @@ class OrderService
             Payment::create([
                 'order_id' => $order->id,
                 'method' => $paymentMethod,
-                'provider' => $paymentMethod === 'clip' ? 'clip' : 'transferencia',
+                'provider' => match ($paymentMethod) {
+                    'clip' => 'clip',
+                    'oxxo' => 'oxxo',
+                    default => 'transferencia',
+                },
                 'status' => 'pending',
                 'amount' => $order->total,
                 'currency' => 'MXN',
@@ -108,10 +118,12 @@ class OrderService
         });
 
         try {
-            Mail::to($order->customer_email)->send(new OrderReceiptMail($order));
+            Mail::to($order->customer_email)->queue(new OrderReceiptMail($order));
         } catch (Throwable $exception) {
             report($exception);
         }
+
+        $this->notifyAdmins(new AdminNewOrderMail($order));
 
         return $order;
     }
@@ -149,11 +161,12 @@ class OrderService
 
         if ($sendReceipt) {
             try {
-                Mail::to($order->customer_email)->send(new OrderReceiptMail($order));
+                Mail::to($order->customer_email)->queue(new OrderReceiptMail($order, true));
             } catch (Throwable $exception) {
                 report($exception);
             }
 
+            $this->notifyAdmins(new AdminPaymentApprovedMail($order));
             $this->metaAds->sendPurchase($order);
         }
 
@@ -294,6 +307,24 @@ class OrderService
                     'notes' => 'Restauracion por eliminacion de pedido '.$order->folio,
                 ]);
             }
+        }
+    }
+
+    private function notifyAdmins(\Illuminate\Mail\Mailable $mail): void
+    {
+        $recipients = collect(config('services.store.admin_order_emails', []))
+            ->filter(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->unique()
+            ->values();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        try {
+            Mail::to($recipients->all())->queue($mail);
+        } catch (Throwable $exception) {
+            report($exception);
         }
     }
 }

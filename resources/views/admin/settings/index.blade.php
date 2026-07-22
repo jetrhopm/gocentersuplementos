@@ -37,7 +37,7 @@
                 Carruseles
             </button>
             <button type="button" class="settings-tab" :class="tab === 'pagos' ? 'settings-tab-active' : ''" x-on:click="tab = 'pagos'">
-                Envio{{ $isSuperAdmin ? ' y transferencia' : '' }}
+                Envio{{ $isSuperAdmin ? ' y pagos manuales' : '' }}
             </button>
             @if($isSuperAdmin)
             <button type="button" class="settings-tab" :class="tab === 'clip' ? 'settings-tab-active' : ''" x-on:click="tab = 'clip'">
@@ -117,7 +117,7 @@
     </section>
 
     <section class="panel mt-6 p-5" x-show="tab === 'pagos'" x-cloak>
-        <h2 class="text-xl font-black uppercase text-white">Envio{{ $isSuperAdmin ? ' y transferencia' : '' }}</h2>
+        <h2 class="text-xl font-black uppercase text-white">Envio{{ $isSuperAdmin ? ' y pagos manuales' : '' }}</h2>
         <div class="mt-5 grid gap-4 md:grid-cols-2">
             <div class="field"><label>Costo de envio</label><input name="STORE_SHIPPING_COST" value="{{ $value('STORE_SHIPPING_COST', 99) }}" inputmode="decimal"></div>
             <div class="field"><label>Envio gratis desde</label><input name="STORE_FREE_SHIPPING_FROM" value="{{ $value('STORE_FREE_SHIPPING_FROM', 1499) }}" inputmode="decimal"></div>
@@ -127,6 +127,9 @@
             <div class="field"><label>Cuenta</label><input name="BANK_ACCOUNT_NUMBER" value="{{ $value('BANK_ACCOUNT_NUMBER') }}"></div>
             <div class="field"><label>CLABE</label><input name="BANK_CLABE" value="{{ $value('BANK_CLABE') }}"></div>
             <div class="field md:col-span-2"><label>Instrucciones de transferencia</label><textarea name="BANK_TRANSFER_INSTRUCTIONS" rows="4">{{ $value('BANK_TRANSFER_INSTRUCTIONS') }}</textarea></div>
+            <div class="field"><label>QR OXXO</label><input name="OXXO_PAYMENT_QR_PATH" value="{{ $value('OXXO_PAYMENT_QR_PATH', 'assets/payments/oxxo-qr.jpg') }}" placeholder="assets/payments/oxxo-qr.jpg"></div>
+            <div class="field"><label>Referencia OXXO</label><input name="OXXO_PAYMENT_REFERENCE" value="{{ $value('OXXO_PAYMENT_REFERENCE') }}" placeholder="Numero que puede dictar el cliente"></div>
+            <div class="field md:col-span-2"><label>Instrucciones OXXO</label><textarea name="OXXO_PAYMENT_INSTRUCTIONS" rows="4">{{ $value('OXXO_PAYMENT_INSTRUCTIONS', 'Muestra el codigo QR en OXXO o dicta la referencia indicada. Conserva tu comprobante para validar tu pago.') }}</textarea></div>
             @else
                 <div class="md:col-span-2 rounded-md border border-zinc-800 bg-zinc-950 p-4 text-sm text-zinc-500">
                     Los datos bancarios solo pueden ser modificados por un super admin.
@@ -216,6 +219,11 @@
             <div class="field"><label>Password</label><input name="MAIL_PASSWORD" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['MAIL_PASSWORD'] }}"></div>
             <div class="field"><label>Correo remitente</label><input type="email" name="MAIL_FROM_ADDRESS" value="{{ $value('MAIL_FROM_ADDRESS', 'hello@example.com') }}"></div>
             <div class="field"><label>Nombre remitente</label><input name="MAIL_FROM_NAME" value="{{ $value('MAIL_FROM_NAME', '${APP_NAME}') }}"></div>
+            <div class="field md:col-span-2">
+                <label>Notificar pedidos a</label>
+                <input name="STORE_ADMIN_ORDER_EMAILS" value="{{ $value('STORE_ADMIN_ORDER_EMAILS') }}" placeholder="admin@dominio.com, ventas@dominio.com">
+                <span class="text-xs text-zinc-500">Recibe avisos de pedidos nuevos y pagos aprobados. Puedes separar varios correos con coma.</span>
+            </div>
             <div class="field md:col-span-2">
                 <label>Enviar prueba a</label>
                 <div class="grid gap-3 sm:grid-cols-[1fr_auto]">

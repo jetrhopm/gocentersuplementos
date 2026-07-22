@@ -338,6 +338,31 @@ php artisan route:cache
 php artisan view:cache
 ```
 
+### Cola de correos en produccion
+
+Los correos de pedido nuevo, pago recibido y avisos al administrador se guardan en la cola para que el checkout no espere al servidor SMTP.
+
+Verifica que el `.env` de produccion use:
+
+```env
+QUEUE_CONNECTION=database
+```
+
+Despues de migrar, la tabla `jobs` debe existir. Para procesar correos pendientes manualmente:
+
+```bash
+cd ~/gocentersuplementos
+php artisan queue:work --stop-when-empty --tries=3 --timeout=60
+```
+
+En Hostinger conviene crear un cron cada minuto o cada pocos minutos con el mismo comando para que los correos salgan solos:
+
+```bash
+cd /home/u705161084/gocentersuplementos && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --tries=3 --timeout=60
+```
+
+Si el hosting usa otra ruta de PHP, reemplaza `/opt/alt/php83/usr/bin/php` por la ruta que corresponda.
+
 No uses `cp -R public/. public_html/` en actualizaciones normales porque puede sobrescribir el `index.php` especial de Hostinger.
 
 Rollback rapido si un deploy rompe produccion:

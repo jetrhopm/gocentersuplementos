@@ -13,6 +13,7 @@ use App\Services\CartService;
 use App\Services\CatalogBackupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -262,36 +263,76 @@ class StoreFlowTest extends TestCase
         ]);
     }
 
-    public function test_clip_webhook_does_not_mark_matching_unsigned_postback_as_paid_without_verification(): void
+    public function test_clip_webhook_verifies_matching_unsigned_postback_before_marking_paid(): void
     {
+        \Illuminate\Support\Facades\Mail::fake();
         config(['services.clip.webhook_secret' => 'secret-for-signature']);
+        config(['services.store.admin_order_emails' => ['ventas@example.com']]);
 
         $order = $this->makePendingClipOrder();
+        Payment::where('order_id', $order->id)->update(['payment_request_id' => 'clip_req_123']);
+
+        Http::fake([
+            '*/v2/checkout/clip_req_123' => Http::response([
+                'payment_request_id' => 'clip_req_123',
+                'status' => 'PAID',
+                'amount' => 1000,
+                'currency' => 'MXN',
+                'metadata' => [
+                    'external_reference' => $order->folio,
+                    'merch_inv_id' => $order->folio,
+                ],
+                'receipt_no' => 'RCPT-UNSIGNED',
+                'transaction_id' => 'TXN-UNSIGNED',
+            ]),
+        ]);
 
         $this->postJson(route('webhooks.clip'), [
-            'event_type' => 'UPDATE',
-            'status' => 'PAID',
-            'amount' => 1000,
-            'currency' => 'MXN',
-            'merch_inv_id' => $order->folio,
-            'receipt_no' => 'RCPT-UNSIGNED',
-            'transaction_id' => 'TXN-UNSIGNED',
+            'meta' => [
+                'event_id' => 'clip-postback-123',
+                'item_type' => 'payment_update',
+            ],
+            'item' => [
+                'status' => 'PAID',
+                'amount' => 1000,
+                'currency' => 'MXN',
+                'merch_inv_id' => $order->folio,
+                'receipt_no' => 'RCPT-UNSIGNED',
+                'transaction_id' => 'TXN-UNSIGNED',
+            ],
         ])->assertOk()
             ->assertJsonPath('ok', true)
-            ->assertJsonPath('manual_review', true);
+            ->assertJsonPath('verified', true);
 
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
-            'status' => Order::STATUS_PENDING_CLIP,
+            'status' => Order::STATUS_PAID,
+        ]);
+
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $order->id,
+            'status' => 'paid',
+            'receipt_no' => 'RCPT-UNSIGNED',
+            'transaction_id' => 'TXN-UNSIGNED',
         ]);
 
         $this->assertDatabaseHas('payment_webhook_logs', [
             'provider' => 'clip',
             'order_id' => $order->id,
-            'status' => 'unsigned_requires_review',
+            'payment_request_id' => 'clip_req_123',
+            'status' => 'PAID',
             'signature_valid' => false,
             'response_status' => 200,
         ]);
+
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\OrderReceiptMail::class, function ($mail) use ($order) {
+            return $mail->order->is($order)
+                && $mail->paymentReceived === true;
+        });
+
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\AdminPaymentApprovedMail::class, function ($mail) use ($order) {
+            return $mail->order->is($order);
+        });
     }
 
     public function test_limited_admin_cannot_reject_paid_clip_order(): void
@@ -465,6 +506,80 @@ class StoreFlowTest extends TestCase
             ->assertSee('nos ayuda a identificar tu pago mas rapido')
             ->assertSee('Referencia usada o generada por tu banco (opcional)')
             ->assertDontSee('required', false);
+    }
+
+    public function test_customer_can_create_oxxo_order_and_receives_qr_instructions(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        config([
+            'services.oxxo_payment.qr_path' => 'assets/payments/oxxo-qr.jpg',
+            'services.oxxo_payment.reference' => '2242170260243474',
+            'services.oxxo_payment.instructions' => 'Muestra el codigo QR en OXXO y conserva tu comprobante.',
+            'services.store.admin_order_emails' => ['ventas@example.com'],
+        ]);
+
+        $product = Product::where('stock', '>', 0)->firstOrFail();
+
+        $this->post(route('cart.store'), [
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ])->assertRedirect();
+
+        $response = $this->post(route('checkout.store'), [
+            'customer_name' => 'Juan Perez',
+            'customer_email' => 'juan@example.com',
+            'customer_phone' => '5512345678',
+            'street' => 'Av Reforma',
+            'external_number' => '123',
+            'neighborhood' => 'Centro',
+            'city' => 'Cuauhtemoc',
+            'state' => 'CDMX',
+            'postal_code' => '06000',
+            'payment_method' => 'oxxo',
+        ]);
+
+        $response->assertRedirect();
+
+        $order = Order::where('customer_email', 'juan@example.com')->latest('id')->firstOrFail();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'payment_method' => 'oxxo',
+            'status' => Order::STATUS_PENDING_OXXO,
+        ]);
+
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $order->id,
+            'provider' => 'oxxo',
+            'status' => 'pending',
+        ]);
+
+        $this->get(URL::signedRoute('checkout.received', $order))
+            ->assertOk()
+            ->assertSee('Pago en OXXO')
+            ->assertSee('assets/payments/oxxo-qr.jpg', false)
+            ->assertSee('solo si el cajero la solicita')
+            ->assertSee('2242170260243474');
+
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\OrderReceiptMail::class, function ($mail) use ($order) {
+            return $mail->order->is($order)
+                && $mail->paymentReceived === false;
+        });
+
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\AdminNewOrderMail::class, function ($mail) use ($order) {
+            return $mail->order->is($order);
+        });
+    }
+
+    public function test_clip_success_copy_hides_internal_webhook_language(): void
+    {
+        $order = $this->makePendingClipOrder();
+
+        $this->get(route('checkout.clip.success', ['folio' => $order->folio]))
+            ->assertOk()
+            ->assertSee('Pago en confirmacion')
+            ->assertDontSee('webhook');
     }
 
     public function test_postal_code_endpoint_returns_settlements(): void

@@ -204,6 +204,7 @@ class StoreController extends Controller
         return view('checkout.received', [
             'order' => $order,
             'bank' => config('services.bank_transfer'),
+            'oxxo' => config('services.oxxo_payment'),
             'metaPurchaseEvent' => $metaPurchaseEvent,
         ]);
     }

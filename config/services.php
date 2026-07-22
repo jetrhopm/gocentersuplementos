@@ -42,6 +42,7 @@ return [
         'low_stock_threshold' => (int) env('STORE_LOW_STOCK_THRESHOLD', 5),
         'max_upload_kb' => (int) env('STORE_MAX_UPLOAD_KB', 2048),
         'whatsapp' => env('STORE_WHATSAPP'),
+        'admin_order_emails' => array_values(array_filter(array_map('trim', explode(',', env('STORE_ADMIN_ORDER_EMAILS', ''))))),
         'theme' => env('STORE_THEME', 'volt'),
         'header_show_title' => filter_var(env('STORE_HEADER_SHOW_TITLE', false), FILTER_VALIDATE_BOOL),
         'meta_description' => env('STORE_META_DESCRIPTION', 'Tienda fitness de proteinas, suplementos y ropa deportiva.'),
@@ -70,6 +71,12 @@ return [
         'account_number' => env('BANK_ACCOUNT_NUMBER'),
         'clabe' => env('BANK_CLABE'),
         'instructions' => env('BANK_TRANSFER_INSTRUCTIONS'),
+    ],
+
+    'oxxo_payment' => [
+        'qr_path' => env('OXXO_PAYMENT_QR_PATH', 'assets/payments/oxxo-qr.jpg'),
+        'reference' => env('OXXO_PAYMENT_REFERENCE'),
+        'instructions' => env('OXXO_PAYMENT_INSTRUCTIONS', 'Muestra el codigo QR en OXXO o dicta la referencia indicada. Conserva tu comprobante para validar tu pago.'),
     ],
 
     'ses' => [

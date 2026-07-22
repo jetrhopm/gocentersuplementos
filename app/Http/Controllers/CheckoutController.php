@@ -150,6 +150,7 @@ class CheckoutController extends Controller
         return view('checkout.received', [
             'order' => $order,
             'bank' => config('services.bank_transfer'),
+            'oxxo' => config('services.oxxo_payment'),
             'metaPurchaseEvent' => $metaPurchaseEvent,
         ]);
     }
@@ -157,11 +158,11 @@ class CheckoutController extends Controller
     public function transferReference(Request $request, Order $order)
     {
         $data = $request->validate([
-            'transfer_reference' => ['required', 'string', 'max:160'],
+            'transfer_reference' => ['nullable', 'string', 'max:160'],
         ]);
 
-        if ($order->status === Order::STATUS_PENDING_TRANSFER) {
-            $order->update(['transfer_reference' => $data['transfer_reference']]);
+        if (in_array($order->status, [Order::STATUS_PENDING_TRANSFER, Order::STATUS_PENDING_OXXO], true)) {
+            $order->update(['transfer_reference' => $data['transfer_reference'] ?? null]);
         }
 
         return back()->with('status', 'Referencia guardada. El administrador validara tu pago.');

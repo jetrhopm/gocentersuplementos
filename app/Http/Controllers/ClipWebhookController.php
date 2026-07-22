@@ -76,10 +76,15 @@ class ClipWebhookController extends Controller
                 ]);
             }
 
-            if ($extracted['payment_request_id']) {
+            $lookupPaymentRequestId = $extracted['payment_request_id'] ?: $payment->payment_request_id;
+
+            if ($lookupPaymentRequestId) {
                 try {
-                    $remotePayload = $clip->status($extracted['payment_request_id']);
-                    $remoteExtracted = $this->mergeExtracted($extracted, $clip->extract($remotePayload));
+                    $remotePayload = $clip->status($lookupPaymentRequestId);
+                    $remoteExtracted = $this->mergeExtracted(
+                        array_merge($extracted, ['payment_request_id' => $lookupPaymentRequestId]),
+                        $clip->extract($remotePayload)
+                    );
 
                     if ($this->matchesPayment($payment, $remoteExtracted)) {
                         $order = $payment->order;
@@ -124,7 +129,7 @@ class ClipWebhookController extends Controller
                     'provider' => 'clip',
                     'event_id' => $extracted['event_id'],
                     'order_id' => $payment->order_id,
-                    'payment_request_id' => $extracted['payment_request_id'],
+                    'payment_request_id' => $lookupPaymentRequestId,
                     'external_reference' => $extracted['external_reference'],
                     'status' => 'unsigned_requires_review',
                     'payload' => $payload,

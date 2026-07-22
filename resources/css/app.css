@@ -1760,6 +1760,32 @@
         box-shadow: 0 0 20px rgb(var(--accent-2-rgb) / .3);
     }
 
+    .payment-card.oxxo .payment-icon {
+        border-color: rgb(250 204 21 / .4);
+        background: rgb(250 204 21 / .12);
+        color: rgb(250 204 21);
+    }
+
+    .payment-card.oxxo:hover {
+        border-color: rgb(250 204 21 / .48);
+        box-shadow: 0 18px 60px rgb(250 204 21 / .09);
+    }
+
+    .payment-card.oxxo:has(input:checked) {
+        border-color: rgb(250 204 21);
+        background:
+            linear-gradient(135deg, rgb(250 204 21 / .16), transparent 48%),
+            rgba(12, 12, 14, .94);
+        box-shadow: 0 0 0 2px rgb(250 204 21 / .14), 0 24px 80px rgb(250 204 21 / .12);
+    }
+
+    .payment-card.oxxo:has(input:checked) .payment-check {
+        border-color: rgb(250 204 21);
+        background: rgb(250 204 21);
+        color: #0a0a0a;
+        box-shadow: 0 0 20px rgb(250 204 21 / .28);
+    }
+
     .checkout-summary-row {
         @apply flex items-center justify-between gap-3;
     }

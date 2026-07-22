@@ -12,6 +12,7 @@ class Order extends Model
 {
     public const STATUS_PENDING_TRANSFER = 'pendiente_transferencia';
     public const STATUS_PENDING_CLIP = 'pendiente_clip';
+    public const STATUS_PENDING_OXXO = 'pendiente_oxxo';
     public const STATUS_PAID = 'pagado';
     public const STATUS_REJECTED = 'rechazado';
     public const STATUS_PREPARING = 'preparando';
@@ -93,6 +94,7 @@ class Order extends Model
         return [
             self::STATUS_PENDING_TRANSFER => 'Pendiente transferencia',
             self::STATUS_PENDING_CLIP => 'Pendiente Clip',
+            self::STATUS_PENDING_OXXO => 'Pendiente OXXO',
             self::STATUS_PAID => 'Pago recibido',
             self::STATUS_REJECTED => 'Rechazado',
             self::STATUS_PREPARING => 'Preparando',
@@ -138,6 +140,7 @@ class Order extends Model
         return in_array($this->status, [
             self::STATUS_PENDING_CLIP,
             self::STATUS_PENDING_TRANSFER,
+            self::STATUS_PENDING_OXXO,
             self::STATUS_EXPIRED,
         ], true);
     }
