@@ -425,7 +425,72 @@ php artisan view:cache
 
 ---
 
-## 17. Verificaciones rapidas
+## 17. Configurar worker de correos
+
+El proyecto envia correos de pedidos y pagos mediante cola para que el checkout no espere al servidor SMTP. Esto significa que Laravel guarda los correos pendientes en la tabla `jobs` y un worker los procesa despues.
+
+En el `.env` de produccion debe existir:
+
+```env
+QUEUE_CONNECTION=database
+```
+
+Verifica que las tablas de cola existan:
+
+```bash
+cd ~/gocentersuplementos
+php artisan migrate:status | grep jobs
+```
+
+Para procesar correos manualmente desde SSH:
+
+```bash
+cd ~/gocentersuplementos
+php artisan queue:work --stop-when-empty --tries=3 --timeout=60
+```
+
+Para que Hostinger lo haga automaticamente:
+
+1. Entra a hPanel.
+2. Abre **Avanzado > Cron Jobs** o **Tareas Cron**.
+3. Crea una tarea personalizada.
+4. Usa frecuencia cada minuto o cada 5 minutos.
+5. Pega el comando:
+
+```bash
+cd /home/USUARIO/gocentersuplementos && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --tries=3 --timeout=60
+```
+
+Cambia `USUARIO` por el usuario real de Hostinger. En el hosting actual el comando queda:
+
+```bash
+cd /home/u705161084/gocentersuplementos && /opt/alt/php83/usr/bin/php artisan queue:work --stop-when-empty --tries=3 --timeout=60
+```
+
+Si Hostinger cambia la ruta de PHP, revisa la version activa con:
+
+```bash
+which php
+php -v
+```
+
+Si el comando con `/opt/alt/php83/usr/bin/php` no funciona, usa la ruta que regrese `which php`.
+
+Para revisar si hay correos pendientes:
+
+```bash
+php artisan tinker --execute="echo DB::table('jobs')->count().PHP_EOL;"
+```
+
+Para revisar trabajos fallidos:
+
+```bash
+php artisan tinker --execute="echo DB::table('failed_jobs')->count().PHP_EOL;"
+```
+
+---
+
+## 18. Verificaciones rapidas
 
 Verificar rutas de administradores:
 
@@ -472,7 +537,7 @@ composer.json
 
 ---
 
-## 18. Accesos iniciales
+## 19. Accesos iniciales
 
 Panel administrador:
 
