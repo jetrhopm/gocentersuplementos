@@ -14,14 +14,30 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::with('category')
-            ->when($request->filled('q'), fn ($query) => $query->where('name', 'like', '%'.$request->string('q').'%'))
-            ->when($request->filled('status'), fn ($query) => $query->where('active', $request->string('status') === 'active'))
-            ->latest()
+        $categories = Category::orderBy('sort_order')->orderBy('name')->get();
+        $sort = in_array($request->string('sort')->toString(), ['name', 'category', 'price', 'compare_at_price'], true)
+            ? $request->string('sort')->toString()
+            : 'created_at';
+        $direction = $request->string('direction')->toString() === 'asc' ? 'asc' : 'desc';
+
+        $products = Product::query()
+            ->select('products.*')
+            ->with(['category', 'images'])
+            ->when($request->filled('q'), fn ($query) => $query->where('products.name', 'like', '%'.$request->string('q').'%'))
+            ->when($request->filled('category'), fn ($query) => $query->where('products.category_id', $request->integer('category')))
+            ->when($request->filled('price_min'), fn ($query) => $query->where('products.price', '>=', $request->float('price_min')))
+            ->when($request->filled('price_max'), fn ($query) => $query->where('products.price', '<=', $request->float('price_max')))
+            ->when($request->filled('status'), fn ($query) => $query->where('products.active', $request->string('status') === 'active'))
+            ->when(
+                $sort === 'category',
+                fn ($query) => $query->leftJoin('categories', 'categories.id', '=', 'products.category_id')->orderBy('categories.name', $direction),
+                fn ($query) => $query->orderBy("products.{$sort}", $direction)
+            )
+            ->orderByDesc('products.id')
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.products.index', compact('products'));
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     public function create()
@@ -71,9 +87,34 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        $product->update(['active' => false]);
+        $product->update([
+            'active' => false,
+            'featured' => false,
+        ]);
 
-        return back()->with('status', 'Producto desactivado.');
+        return back()->with('status', 'Producto ocultado de la tienda y retirado de destacados.');
+    }
+
+    public function toggleVisibility(Product $product)
+    {
+        $product->update(['active' => ! $product->active]);
+
+        $message = $product->active
+            ? 'Producto visible en tienda.'
+            : 'Producto oculto en tienda.';
+
+        if ($product->active && ! $product->category?->active) {
+            $message .= ' La categoria sigue inactiva, por eso aun no se mostrara al cliente.';
+        }
+
+        return back()->with('status', $message);
+    }
+
+    public function toggleFeatured(Product $product)
+    {
+        $product->update(['featured' => ! $product->featured]);
+
+        return back()->with('status', $product->featured ? 'Producto agregado a destacados.' : 'Producto retirado de destacados.');
     }
 
     public function destroyImage(Product $product, int $image)

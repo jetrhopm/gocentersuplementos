@@ -79,6 +79,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/configuracion/correo/probar', [AdminSettingsController::class, 'testMail'])->name('settings.mail.test');
         Route::post('/configuracion/meta/probar', [AdminSettingsController::class, 'testMeta'])->name('settings.meta.test');
         Route::put('/configuracion', [AdminSettingsController::class, 'update'])->name('settings.update');
+        Route::patch('/productos/{product}/visibilidad', [AdminProductController::class, 'toggleVisibility'])->name('products.visibility');
+        Route::patch('/productos/{product}/destacado', [AdminProductController::class, 'toggleFeatured'])->name('products.featured');
         Route::resource('productos', AdminProductController::class)->names('products')->parameters(['productos' => 'product'])->except('show');
         Route::delete('/productos/{product}/imagenes/{image}', [AdminProductController::class, 'destroyImage'])->name('products.images.destroy');
         Route::resource('categorias', AdminCategoryController::class)->names('categories')->parameters(['categorias' => 'category'])->except('show');

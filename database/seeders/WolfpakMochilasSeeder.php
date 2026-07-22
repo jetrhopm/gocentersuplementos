@@ -19,8 +19,8 @@ class WolfpakMochilasSeeder extends Seeder
         $products = [
             [
                 'name' => '30L Perfect Duffle Bag Superman 2025',
-                'price' => 2800,
-                'compare_at_price' => 3500,
+                'price' => 1200,
+                'compare_at_price' => 2000,
                 'images' => [
                     'assets/wolfpak/products/30l-perfect-duffle-bag-superman-2025-1.png',
                     'assets/wolfpak/products/30l-perfect-duffle-bag-superman-2025-2.jpg',
@@ -30,7 +30,7 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '9L Backpack Mini Superman',
-                'price' => 1540,
+                'price' => 1240,
                 'compare_at_price' => 1930,
                 'images' => [
                     'assets/wolfpak/products/9l-backpack-mini-superman-1.png',
@@ -41,8 +41,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '9L Tactical Sling Bag Batman',
-                'price' => 1680,
-                'compare_at_price' => 2100,
+                'price' => 980,
+                'compare_at_price' => 1700,
                 'images' => [
                     'assets/wolfpak/products/9l-tactical-sling-bag-batman-1.png',
                     'assets/wolfpak/products/9l-tactical-sling-bag-batman-2.jpg',
@@ -52,8 +52,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '30L Perfect Duffle Bag Batman',
-                'price' => 2800,
-                'compare_at_price' => 3500,
+                'price' => 1400,
+                'compare_at_price' => 2200,
                 'images' => [
                     'assets/wolfpak/products/30l-perfect-duffle-bag-batman-1.png',
                     'assets/wolfpak/products/30l-perfect-duffle-bag-batman-2.jpg',
@@ -63,8 +63,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '35L Batman Meal Prep Management',
-                'price' => 3390,
-                'compare_at_price' => 4240,
+                'price' => 1390,
+                'compare_at_price' => 2240,
                 'images' => [
                     'assets/wolfpak/products/35l-batman-meal-prep-management-1.png',
                     'assets/wolfpak/products/35l-batman-meal-prep-management-2.png',
@@ -74,8 +74,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '4L Mini Tactical Sling Bag Batman',
-                'price' => 1540,
-                'compare_at_price' => 1930,
+                'price' => 1040,
+                'compare_at_price' => 1530,
                 'images' => [
                     'assets/wolfpak/products/4l-mini-tactical-sling-bag-batman-1.png',
                     'assets/wolfpak/products/4l-mini-tactical-sling-bag-batman-2.jpg',
@@ -85,8 +85,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '15L Backpack Batman',
-                'price' => 2380,
-                'compare_at_price' => 2980,
+                'price' => 1380,
+                'compare_at_price' => 1980,
                 'images' => [
                     'assets/wolfpak/products/15l-backpack-batman-1.png',
                     'assets/wolfpak/products/15l-backpack-batman-2.jpg',
@@ -107,7 +107,7 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '9L Backpack Mini Retro Batman',
-                'price' => 1930,
+                'price' => 1430,
                 'compare_at_price' => null,
                 'images' => [
                     'assets/wolfpak/products/9l-backpack-mini-retro-batman-1.png',
@@ -118,8 +118,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '30L Perfect Duffle Bag DC Villains',
-                'price' => 2800,
-                'compare_at_price' => 3500,
+                'price' => 1300,
+                'compare_at_price' => 2100,
                 'images' => [
                     'assets/wolfpak/products/30l-perfect-duffle-bag-dc-villains-1.png',
                     'assets/wolfpak/products/30l-perfect-duffle-bag-dc-villains-2.jpg',
@@ -140,8 +140,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '9L Backpack Mini The Flash',
-                'price' => 1350,
-                'compare_at_price' => 1930,
+                'price' => 950,
+                'compare_at_price' => 1530,
                 'images' => [
                     'assets/wolfpak/products/9l-backpack-mini-the-flash-1.png',
                     'assets/wolfpak/products/9l-backpack-mini-the-flash-2.jpg',
@@ -152,8 +152,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '30L Perfect Duffle Bag The Flash',
-                'price' => 2450,
-                'compare_at_price' => 3500,
+                'price' => 1450,
+                'compare_at_price' => 2500,
                 'images' => [
                     'assets/wolfpak/products/30l-perfect-duffle-bag-the-flash-1.png',
                     'assets/wolfpak/products/30l-perfect-duffle-bag-the-flash-2.jpg',
@@ -188,8 +188,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => 'The Champion of Grayskull Bundle',
-                'price' => 5430,
-                'compare_at_price' => null,
+                'price' => 1869,
+                'compare_at_price' => 2599,
                 'images' => [
                     'assets/wolfpak/products/the-champion-of-grayskull-bundle-1.jpg',
                     'assets/wolfpak/products/the-champion-of-grayskull-bundle-2.jpg',
@@ -212,8 +212,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '45L Backpack Mortal Kombat',
-                'price' => 2800,
-                'compare_at_price' => 3500,
+                'price' => 1400,
+                'compare_at_price' => 2100,
                 'images' => [
                     'assets/wolfpak/products/45l-backpack-mortal-kombat-1.jpg',
                     'assets/wolfpak/products/45l-backpack-mortal-kombat-2.jpg',
@@ -224,8 +224,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '9L Tactical Sling Bag Buried In Ink',
-                'price' => 1650,
-                'compare_at_price' => 2070,
+                'price' => 950,
+                'compare_at_price' => 1570,
                 'images' => [
                     'assets/wolfpak/products/9l-tactical-sling-bag-buried-in-ink-1.jpg',
                     'assets/wolfpak/products/9l-tactical-sling-bag-buried-in-ink-2.jpg',
@@ -236,8 +236,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '9L Tactical Sling Bag Until Forever',
-                'price' => 1650,
-                'compare_at_price' => 2070,
+                'price' => 1050,
+                'compare_at_price' => 1670,
                 'images' => [
                     'assets/wolfpak/products/9l-tactical-sling-bag-until-forever-1.jpg',
                     'assets/wolfpak/products/9l-tactical-sling-bag-until-forever-2.jpg',
@@ -248,8 +248,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '15L Backpack Harley Quinn',
-                'price' => 2080,
-                'compare_at_price' => 2980,
+                'price' => 1080,
+                'compare_at_price' => 1980,
                 'images' => [
                     'assets/wolfpak/products/15l-backpack-harley-quinn-1.jpg',
                     'assets/wolfpak/products/15l-backpack-harley-quinn-2.jpg',
@@ -260,8 +260,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '30L Perfect Duffle Bag IT Chapter 2',
-                'price' => 2980,
-                'compare_at_price' => 3500,
+                'price' => 1480,
+                'compare_at_price' => 2000,
                 'images' => [
                     'assets/wolfpak/products/30l-perfect-duffle-bag-it-chapter-2-1.jpg',
                     'assets/wolfpak/products/30l-perfect-duffle-bag-it-chapter-2-2.jpg',
@@ -284,8 +284,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '35L Backpack Nightmare on Elm Street',
-                'price' => 2830,
-                'compare_at_price' => 3330,
+                'price' => 1299,
+                'compare_at_price' => 1600,
                 'images' => [
                     'assets/wolfpak/products/35l-backpack-nightmare-on-elm-street-1.jpg',
                     'assets/wolfpak/products/35l-backpack-nightmare-on-elm-street-2.jpg',
@@ -296,8 +296,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '35L Backpack Hot Wheels Racing',
-                'price' => 2330,
-                'compare_at_price' => 3330,
+                'price' => 830,
+                'compare_at_price' => 1330,
                 'images' => [
                     'assets/wolfpak/products/35l-backpack-hot-wheels-racing-1.jpg',
                     'assets/wolfpak/products/35l-backpack-hot-wheels-racing-2.jpg',
@@ -308,8 +308,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '25L Backpack High Stakes',
-                'price' => 1960,
-                'compare_at_price' => 2800,
+                'price' => 1169,
+                'compare_at_price' => 1869,
                 'images' => [
                     'assets/wolfpak/products/25l-backpack-high-stakes-1.png',
                     'assets/wolfpak/products/25l-backpack-high-stakes-2.jpg',
@@ -320,8 +320,8 @@ class WolfpakMochilasSeeder extends Seeder
             ],
             [
                 'name' => '45L Backpack Nightmare on Elm Street',
-                'price' => 2980,
-                'compare_at_price' => 3500,
+                'price' => 1480,
+                'compare_at_price' => 2280,
                 'images' => [
                     'assets/wolfpak/products/45l-backpack-nightmare-on-elm-street-1.jpg',
                     'assets/wolfpak/products/45l-backpack-nightmare-on-elm-street-2.jpg',
