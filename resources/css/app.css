@@ -63,6 +63,8 @@
     textarea,
     select {
         @apply rounded border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none transition;
+        max-width: 100%;
+        min-width: 0;
         font-size: 16px;
         line-height: 1.35;
     }
@@ -453,6 +455,7 @@
 
     .field {
         @apply flex flex-col gap-1.5;
+        min-width: 0;
     }
 
     .field label {
@@ -461,6 +464,21 @@
 
     .field label [data-lucide] {
         color: var(--accent);
+    }
+
+    .product-info-panel [data-cart-form],
+    .product-info-panel [data-cart-form] .field,
+    .product-info-panel [data-cart-form] select,
+    .product-info-panel [data-cart-form] input {
+        width: 100%;
+    }
+
+    .product-info-panel [data-cart-form] .btn-primary {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        text-align: center;
+        white-space: normal;
     }
 
     .badge {
