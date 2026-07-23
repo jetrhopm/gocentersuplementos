@@ -36,10 +36,19 @@ class SettingsController extends Controller
     {
         $data = $request->validated();
 
-        foreach (['CLIP_PUBLIC_KEY', 'CLIP_SECRET_KEY', 'CLIP_API_KEY', 'CLIP_WEBHOOK_SECRET', 'META_CAPI_ACCESS_TOKEN', 'MAIL_PASSWORD'] as $secretKey) {
+        $clearMetaCapiToken = (bool) ($data['META_CAPI_ACCESS_TOKEN_CLEAR'] ?? false);
+        unset($data['META_CAPI_ACCESS_TOKEN_CLEAR']);
+
+        foreach (['CLIP_PUBLIC_KEY', 'CLIP_SECRET_KEY', 'CLIP_API_KEY', 'CLIP_WEBHOOK_SECRET', 'MAIL_PASSWORD'] as $secretKey) {
             if (($data[$secretKey] ?? '') === '') {
                 unset($data[$secretKey]);
             }
+        }
+
+        if ($clearMetaCapiToken) {
+            $data['META_CAPI_ACCESS_TOKEN'] = '';
+        } elseif (($data['META_CAPI_ACCESS_TOKEN'] ?? '') === '') {
+            unset($data['META_CAPI_ACCESS_TOKEN']);
         }
 
         $env->update($data);
@@ -145,13 +154,16 @@ class SettingsController extends Controller
             'META_PIXEL_ID' => ['nullable', 'string', 'max:60', 'regex:/^[0-9]+$/'],
             'META_CAPI_ACCESS_TOKEN' => ['nullable', 'string', 'max:2000'],
             'META_TEST_EVENT_CODE' => ['nullable', 'string', 'max:120'],
+            'META_CAPI_ACCESS_TOKEN_CLEAR' => ['nullable', 'boolean'],
         ]);
 
         $result = $metaAds->testConnection([
             'pixel_id' => $data['META_PIXEL_ID'] ?: ($values['META_PIXEL_ID'] ?? null),
-            'access_token' => $request->filled('META_CAPI_ACCESS_TOKEN')
+            'access_token' => $request->boolean('META_CAPI_ACCESS_TOKEN_CLEAR')
+                ? null
+                : ($request->filled('META_CAPI_ACCESS_TOKEN')
                 ? $data['META_CAPI_ACCESS_TOKEN']
-                : ($values['META_CAPI_ACCESS_TOKEN'] ?? null),
+                : ($values['META_CAPI_ACCESS_TOKEN'] ?? null)),
             'test_event_code' => $data['META_TEST_EVENT_CODE'] ?: ($values['META_TEST_EVENT_CODE'] ?? null),
         ]);
 

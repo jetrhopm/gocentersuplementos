@@ -18,6 +18,7 @@ class AdminSettingsRequest extends FormRequest
             'STORE_MAINTENANCE_MODE' => $this->boolean('STORE_MAINTENANCE_MODE'),
             'STORE_HEADER_SHOW_TITLE' => $this->boolean('STORE_HEADER_SHOW_TITLE'),
             'META_ADS_ENABLED' => $this->boolean('META_ADS_ENABLED'),
+            'META_CAPI_ACCESS_TOKEN_CLEAR' => $this->boolean('META_CAPI_ACCESS_TOKEN_CLEAR'),
             'GOOGLE_SEARCH_ENABLED' => $this->boolean('GOOGLE_SEARCH_ENABLED'),
             'GOOGLE_ADS_ENABLED' => $this->boolean('GOOGLE_ADS_ENABLED'),
             'MAIL_SCHEME' => $this->normalizeMailScheme($this->input('MAIL_SCHEME')),
@@ -70,6 +71,7 @@ class AdminSettingsRequest extends FormRequest
             'META_ADS_ENABLED' => ['boolean'],
             'META_PIXEL_ID' => ['nullable', 'string', 'max:60', 'regex:/^[0-9]+$/'],
             'META_CAPI_ACCESS_TOKEN' => ['nullable', 'string', 'max:2000'],
+            'META_CAPI_ACCESS_TOKEN_CLEAR' => ['boolean'],
             'META_TEST_EVENT_CODE' => ['nullable', 'string', 'max:120'],
 
             'GOOGLE_SEARCH_ENABLED' => ['boolean'],

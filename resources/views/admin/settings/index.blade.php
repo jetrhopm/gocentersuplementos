@@ -278,7 +278,14 @@
                     <div class="field">
                         <label>Conversions API access token</label>
                         <input name="META_CAPI_ACCESS_TOKEN" value="" autocomplete="new-password" placeholder="Actual: {{ $masked['META_CAPI_ACCESS_TOKEN'] }}">
-                        <span class="text-xs leading-5 text-zinc-500">Opcional. Queda listo para enviar eventos servidor a servidor sin exponer el token al navegador.</span>
+                        <span class="text-xs leading-5 text-zinc-500">Opcional. Si lo dejas vacio, se conserva el token guardado sin exponerlo al navegador.</span>
+                        <label class="mt-3 flex items-start gap-3 rounded-md border border-zinc-800 bg-zinc-900/60 p-3 text-sm">
+                            <input type="checkbox" name="META_CAPI_ACCESS_TOKEN_CLEAR" value="1">
+                            <span>
+                                <span class="block font-bold text-white">Borrar token CAPI guardado</span>
+                                <span class="mt-1 block text-xs leading-5 text-zinc-500">Usalo solo si quieres dejar Meta CAPI sin token. Pixel ID y test event code se borran dejandolos vacios.</span>
+                            </span>
+                        </label>
                     </div>
                     <div class="field">
                         <label>Test event code</label>
@@ -296,7 +303,7 @@
                             Probar Meta CAPI
                         </button>
                         <div id="meta-test-result" class="mt-3 rounded-md border border-zinc-800 bg-zinc-950 p-3 text-sm text-zinc-500">
-                            Envia un evento de prueba a Meta usando el Pixel ID y token visibles. Si el token queda vacio, se usa el guardado en el servidor.
+                            Envia un evento de prueba a Meta usando el Pixel ID y token visibles. Si el token queda vacio, se usa el guardado en el servidor; si marcas borrar token, no se usara ninguno.
                         </div>
                     </div>
                 </div>
