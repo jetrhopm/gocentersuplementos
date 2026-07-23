@@ -302,7 +302,12 @@ class StoreFlowTest extends TestCase
     public function test_clip_webhook_verifies_matching_unsigned_postback_before_marking_paid(): void
     {
         \Illuminate\Support\Facades\Mail::fake();
-        config(['services.clip.webhook_secret' => 'secret-for-signature']);
+        config([
+            'services.clip.webhook_secret' => 'secret-for-signature',
+            'services.clip.api_key' => 'ci-test-token',
+            'services.clip.public_key' => null,
+            'services.clip.secret_key' => null,
+        ]);
         config(['services.store.admin_order_emails' => ['ventas@example.com']]);
 
         $order = $this->makePendingClipOrder();

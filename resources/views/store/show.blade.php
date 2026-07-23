@@ -99,7 +99,7 @@
                     <label for="quantity">Cantidad</label>
                     <input id="quantity" type="number" name="quantity" min="1" max="99" inputmode="numeric" x-model="qty" value="1">
                 </div>
-                <button class="btn-primary min-h-12" @disabled($product->stock < 1)>
+                <button class="btn-primary min-h-12 w-full" @disabled($product->stock < 1)>
                     <i data-lucide="shopping-cart" class="h-4 w-4"></i>
                     Agregar al carrito
                 </button>
