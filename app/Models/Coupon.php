@@ -52,10 +52,14 @@ class Coupon extends Model
         return true;
     }
 
-    public function discountFor(float $subtotal): float
+    public function discountFor(float $subtotal, float $shipping = 0): float
     {
         if (! $this->isUsable($subtotal)) {
             return 0;
+        }
+
+        if ($this->type === 'free_shipping') {
+            return round(max(0, $shipping), 2);
         }
 
         if ($this->type === 'percent') {
@@ -63,5 +67,14 @@ class Coupon extends Model
         }
 
         return min((float) $this->value, $subtotal);
+    }
+
+    public function discountLabel(): string
+    {
+        return match ($this->type) {
+            'percent' => number_format((float) $this->value, 0).'%',
+            'free_shipping' => 'Envio gratis',
+            default => '$'.number_format((float) $this->value, 2),
+        };
     }
 }

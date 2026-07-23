@@ -40,7 +40,7 @@
                 <tr>
                     <td class="p-4 font-black text-white">{{ $coupon->code }}</td>
                     <td class="p-4 text-zinc-300">
-                        {{ $coupon->type === 'percent' ? number_format((float) $coupon->value, 0).'%': '$'.number_format((float) $coupon->value, 2) }}
+                        {{ $coupon->discountLabel() }}
                     </td>
                     <td class="p-4 text-zinc-400">${{ number_format((float) $coupon->minimum_total, 2) }}</td>
                     <td class="p-4 text-zinc-400">{{ $coupon->uses }} / {{ $coupon->max_uses ?? 'Sin limite' }}</td>

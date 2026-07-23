@@ -1140,6 +1140,11 @@ class DatabaseSeeder extends Seeder
             ['type' => 'percent', 'value' => 10, 'minimum_total' => 0, 'max_uses' => null, 'active' => true]
         );
 
+        Coupon::updateOrCreate(
+            ['code' => 'ENVIOGRATIS'],
+            ['type' => 'free_shipping', 'value' => 100, 'minimum_total' => 0, 'max_uses' => null, 'active' => true]
+        );
+
         foreach ([
             'maintenance_mode' => '0',
             'store_email' => 'ventas@local.test',

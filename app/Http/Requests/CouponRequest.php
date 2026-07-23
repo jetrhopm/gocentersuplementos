@@ -19,6 +19,7 @@ class CouponRequest extends FormRequest
             'active' => $this->boolean('active'),
             'max_uses' => $this->input('max_uses') === '' ? null : $this->input('max_uses'),
             'minimum_total' => $this->input('minimum_total') === '' ? 0 : $this->input('minimum_total'),
+            'value' => $this->input('type') === 'free_shipping' ? 100 : $this->input('value'),
         ]);
     }
 
@@ -28,7 +29,7 @@ class CouponRequest extends FormRequest
 
         return [
             'code' => ['required', 'string', 'max:40', 'regex:/^[A-Z0-9_-]+$/', Rule::unique('coupons', 'code')->ignore($coupon)],
-            'type' => ['required', Rule::in(['percent', 'fixed'])],
+            'type' => ['required', Rule::in(['percent', 'fixed', 'free_shipping'])],
             'value' => ['required', 'numeric', 'min:0.01', 'max:999999'],
             'minimum_total' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'max_uses' => ['nullable', 'integer', 'min:1', 'max:999999'],

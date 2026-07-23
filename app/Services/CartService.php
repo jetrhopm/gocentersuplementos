@@ -181,7 +181,6 @@ class CartService
     {
         $subtotal = $this->subtotal();
         $coupon = $this->coupon();
-        $discount = $coupon?->discountFor($subtotal) ?? 0;
         $shippingCost = (float) config('services.store.shipping_cost');
         $freeShippingFrom = (float) config('services.store.free_shipping_from');
         $shipping = $subtotal > 0 ? $shippingCost : 0;
@@ -190,6 +189,8 @@ class CartService
         if ($hasFreeShipping) {
             $shipping = 0;
         }
+
+        $discount = $coupon?->discountFor($subtotal, $shipping) ?? 0;
 
         return [
             'subtotal' => round($subtotal, 2),

@@ -55,7 +55,7 @@ class OrderService
                 }
 
                 $totals['coupon'] = $coupon;
-                $totals['discount'] = $coupon->discountFor((float) $totals['subtotal']);
+                $totals['discount'] = $coupon->discountFor((float) $totals['subtotal'], (float) $totals['shipping']);
                 $totals['total'] = round(max(0, $totals['subtotal'] + $totals['shipping'] - $totals['discount']), 2);
             }
 

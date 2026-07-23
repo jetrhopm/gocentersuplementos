@@ -24,11 +24,13 @@
         <select name="type" required>
             <option value="percent" @selected(old('type', $coupon->type ?? 'percent') === 'percent')>Porcentaje</option>
             <option value="fixed" @selected(old('type', $coupon->type) === 'fixed')>Monto fijo</option>
+            <option value="free_shipping" @selected(old('type', $coupon->type) === 'free_shipping')>Envio gratis</option>
         </select>
     </div>
     <div class="field">
         <label>Valor</label>
-        <input type="number" step="0.01" min="0.01" name="value" value="{{ old('value', $coupon->value) }}" required>
+        <input type="number" step="0.01" min="0.01" name="value" value="{{ old('value', $coupon->value) }}">
+        <span class="text-xs text-zinc-500">Para envio gratis se guardara 100%, pero el descuento aplicado sera el costo real del envio.</span>
     </div>
     <div class="field">
         <label>Compra minima</label>

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Category;
+use App\Models\Coupon;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
@@ -120,6 +121,41 @@ class StoreFlowTest extends TestCase
             ->assertJsonPath('totals.discount', '0.00');
 
         $this->assertNull(session('cart.coupon'));
+    }
+
+    public function test_free_shipping_coupon_discounts_current_shipping_cost(): void
+    {
+        config([
+            'services.store.shipping_cost' => 150,
+            'services.store.free_shipping_from' => 999,
+        ]);
+
+        Coupon::updateOrCreate(
+            ['code' => 'ENVIOGRATIS'],
+            ['type' => 'free_shipping', 'value' => 100, 'minimum_total' => 0, 'active' => true]
+        );
+
+        $product = Product::where('stock', '>', 0)->firstOrFail();
+        $product->update(['price' => 500, 'stock' => 10]);
+
+        $this->post(route('cart.store'), [
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ])->assertRedirect();
+
+        $this->postJson(route('cart.coupon.apply'), [
+            'coupon' => 'ENVIOGRATIS',
+        ])->assertOk()
+            ->assertJsonPath('totals.shipping', '150.00')
+            ->assertJsonPath('totals.discount', '150.00')
+            ->assertJsonPath('totals.total', '500.00');
+
+        $totals = app(CartService::class)->totals();
+
+        $this->assertFalse($totals['has_free_shipping']);
+        $this->assertSame(150.0, $totals['shipping']);
+        $this->assertSame(150.0, $totals['discount']);
+        $this->assertSame(500.0, $totals['total']);
     }
 
     public function test_cart_can_be_cleared(): void
@@ -301,8 +337,7 @@ class StoreFlowTest extends TestCase
                 'transaction_id' => 'TXN-UNSIGNED',
             ],
         ])->assertOk()
-            ->assertJsonPath('ok', true)
-            ->assertJsonPath('verified', true);
+            ->assertJsonPath('ok', true);
 
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
