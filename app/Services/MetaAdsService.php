@@ -138,7 +138,7 @@ class MetaAdsService
             $response = Http::timeout(8)
                 ->acceptJson()
                 ->asJson()
-                ->post($this->endpoint(), $payload + ['access_token' => $this->accessToken()]);
+                ->post($this->endpoint($this->pixelId(), $this->accessToken()), $payload);
 
             if (! $response->successful()) {
                 Log::warning('Meta CAPI event rejected.', [
@@ -180,7 +180,6 @@ class MetaAdsService
                         'value' => 0,
                     ],
                 ]],
-                'access_token' => $token,
             ];
 
             if (! empty($override['test_event_code'])) {
@@ -190,7 +189,7 @@ class MetaAdsService
             $response = Http::timeout(8)
                 ->acceptJson()
                 ->asJson()
-                ->post('https://graph.facebook.com/'.self::GRAPH_VERSION.'/'.$pixelId.'/events', $payload);
+                ->post($this->endpoint($pixelId, $token), $payload);
 
             if ($response->successful()) {
                 return [
@@ -203,7 +202,7 @@ class MetaAdsService
 
             return [
                 'ok' => false,
-                'message' => 'Meta rechazo la prueba: '.$message,
+                'message' => 'Meta rechazo la prueba: '.$this->friendlyMetaError($message),
             ];
         } catch (Throwable $exception) {
             report($exception);
@@ -302,9 +301,12 @@ class MetaAdsService
         return filled(config('services.marketing.meta_capi_access_token')) ? (string) config('services.marketing.meta_capi_access_token') : null;
     }
 
-    private function endpoint(): string
+    private function endpoint(?string $pixelId = null, ?string $accessToken = null): string
     {
-        return 'https://graph.facebook.com/'.self::GRAPH_VERSION.'/'.$this->pixelId().'/events';
+        $url = 'https://graph.facebook.com/'.self::GRAPH_VERSION.'/'.($pixelId ?: $this->pixelId()).'/events';
+        $token = $accessToken ?: $this->accessToken();
+
+        return $token ? $url.'?access_token='.urlencode($token) : $url;
     }
 
     private function metaErrorMessage(mixed $response): string
@@ -314,5 +316,14 @@ class MetaAdsService
         }
 
         return (string) data_get($response, 'error.message', '');
+    }
+
+    private function friendlyMetaError(string $message): string
+    {
+        if (str_contains(strtolower($message), 'bad signature')) {
+            return 'Bad signature. El Pixel puede estar activo, pero el token CAPI no fue aceptado por Meta. Revisa que sea el token de Conversions API generado para este Pixel ID, sin espacios ni texto extra.';
+        }
+
+        return $message;
     }
 }
