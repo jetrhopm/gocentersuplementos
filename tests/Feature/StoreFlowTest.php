@@ -67,6 +67,73 @@ class StoreFlowTest extends TestCase
         ]);
     }
 
+    public function test_transfer_receipt_email_includes_bank_instructions(): void
+    {
+        config([
+            'services.bank_transfer.bank_name' => 'Banco Demo',
+            'services.bank_transfer.account_holder' => 'Go Center Suplementos',
+            'services.bank_transfer.account_number' => '1234567890',
+            'services.bank_transfer.clabe' => '012345678901234567',
+            'services.bank_transfer.instructions' => 'Envia tu comprobante por WhatsApp.',
+        ]);
+
+        $order = Order::create([
+            'folio' => Order::makeFolio(),
+            'customer_name' => 'Juan Perez',
+            'customer_email' => 'juan@example.com',
+            'customer_phone' => '5512345678',
+            'street' => 'Av Reforma',
+            'external_number' => '123',
+            'neighborhood' => 'Centro',
+            'city' => 'Cuauhtemoc',
+            'state' => 'CDMX',
+            'postal_code' => '06000',
+            'subtotal' => 1000,
+            'shipping_cost' => 150,
+            'discount' => 0,
+            'total' => 1150,
+            'payment_method' => 'transferencia',
+            'status' => Order::STATUS_PENDING_TRANSFER,
+        ]);
+
+        $html = (new \App\Mail\OrderReceiptMail($order))->render();
+
+        $this->assertStringContainsString('Pago por transferencia bancaria', $html);
+        $this->assertStringContainsString('Banco Demo', $html);
+        $this->assertStringContainsString('012345678901234567', $html);
+        $this->assertStringContainsString('La validacion puede tomar de 0 a 48 horas habiles.', $html);
+        $this->assertStringContainsString('Si ya realizaste tu transferencia, omite este mensaje.', $html);
+    }
+
+    public function test_pending_card_receipt_email_points_to_order_page(): void
+    {
+        $order = Order::create([
+            'folio' => Order::makeFolio(),
+            'customer_name' => 'Juan Perez',
+            'customer_email' => 'juan@example.com',
+            'customer_phone' => '5512345678',
+            'street' => 'Av Reforma',
+            'external_number' => '123',
+            'neighborhood' => 'Centro',
+            'city' => 'Cuauhtemoc',
+            'state' => 'CDMX',
+            'postal_code' => '06000',
+            'subtotal' => 1000,
+            'shipping_cost' => 0,
+            'discount' => 0,
+            'total' => 1000,
+            'payment_method' => 'clip',
+            'status' => Order::STATUS_PENDING_CLIP,
+        ]);
+
+        $html = (new \App\Mail\OrderReceiptMail($order))->render();
+
+        $this->assertStringContainsString('Pago con tarjeta pendiente', $html);
+        $this->assertStringContainsString('abre tu pedido desde el boton de abajo', $html);
+        $this->assertStringContainsString('Ver mi pedido', $html);
+        $this->assertStringNotContainsString('Pagar ahora con tarjeta', $html);
+    }
+
     public function test_shipping_cost_is_removed_when_subtotal_reaches_free_shipping_minimum(): void
     {
         config([
@@ -663,7 +730,30 @@ class StoreFlowTest extends TestCase
 
         $this->get(URL::signedRoute('orders.public.show', $order))
             ->assertOk()
-            ->assertSee('Pagar con Clip');
+            ->assertSee('Retomar tu pedido')
+            ->assertSee('Pagar con tarjeta');
+    }
+
+    public function test_customer_can_change_pending_order_payment_method(): void
+    {
+        $order = $this->makePendingClipOrder();
+
+        $this->post(URL::signedRoute('checkout.payment-method', $order), [
+            'payment_method' => 'transferencia',
+        ])->assertRedirect()
+            ->assertSessionHas('status', 'Metodo de pago actualizado.');
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'payment_method' => 'transferencia',
+            'status' => Order::STATUS_PENDING_TRANSFER,
+        ]);
+
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $order->id,
+            'provider' => 'transferencia',
+            'status' => 'pending',
+        ]);
     }
 
     public function test_admin_can_send_payment_reminder(): void
@@ -677,6 +767,45 @@ class StoreFlowTest extends TestCase
             ->assertSessionHas('status');
 
         \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\PaymentReminderMail::class);
+    }
+
+    public function test_admin_can_send_payment_reminder_with_recovery_discount(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $admin = User::where('email', 'admin@local.test')->firstOrFail();
+        $order = $this->makePendingClipOrder();
+        $order->update([
+            'subtotal' => 1000,
+            'shipping_cost' => 150,
+            'discount' => 0,
+            'total' => 1150,
+        ]);
+        $order->payment?->update(['amount' => 1150]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.orders.payment-reminder', $order), [
+                'reminder_note' => 'Te dejamos un beneficio especial para retomar tu compra.',
+                'discount_type' => 'percent',
+                'discount_value' => 10,
+            ])
+            ->assertSessionHas('status');
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'discount' => 115,
+            'total' => 1035,
+        ]);
+
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $order->id,
+            'amount' => 1035,
+        ]);
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\PaymentReminderMail::class, function ($mail) use ($order) {
+            return $mail->order->is($order)
+                && $mail->discountApplied === true
+                && $mail->customMessage === 'Te dejamos un beneficio especial para retomar tu compra.';
+        });
     }
 
     public function test_payment_reminder_blocked_for_paid_order(): void

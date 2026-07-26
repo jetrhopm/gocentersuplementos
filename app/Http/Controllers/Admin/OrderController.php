@@ -70,14 +70,32 @@ class OrderController extends Controller
             ->with('status', 'Pedido '.$folio.' eliminado. Si tenia inventario descontado, fue restaurado.');
     }
 
-    public function sendPaymentReminder(Order $order)
+    public function sendPaymentReminder(Request $request, Order $order)
     {
         if (! $order->isPayable()) {
             return back()->withErrors(['reminder' => 'Solo se puede enviar recordatorio de pedidos pendientes de pago.']);
         }
 
+        $data = $request->validate([
+            'reminder_note' => ['nullable', 'string', 'max:500'],
+            'discount_type' => ['nullable', 'in:none,percent,fixed'],
+            'discount_value' => ['nullable', 'numeric', 'min:0', 'max:100000'],
+        ]);
+
+        $discountApplied = $this->applyReminderDiscount(
+            $order,
+            $data['discount_type'] ?? 'none',
+            (float) ($data['discount_value'] ?? 0)
+        );
+
+        $order->refresh()->load(['items', 'payment']);
+
         try {
-            Mail::to($order->customer_email)->send(new PaymentReminderMail($order));
+            Mail::to($order->customer_email)->send(new PaymentReminderMail(
+                $order,
+                $data['reminder_note'] ?? null,
+                $discountApplied
+            ));
         } catch (Throwable $exception) {
             report($exception);
 
@@ -85,6 +103,40 @@ class OrderController extends Controller
         }
 
         return back()->with('status', 'Recordatorio de pago enviado a '.$order->customer_email.'.');
+    }
+
+    private function applyReminderDiscount(Order $order, ?string $type, float $value): bool
+    {
+        if ($value <= 0 || ! in_array($type, ['percent', 'fixed'], true)) {
+            return false;
+        }
+
+        $base = round((float) $order->subtotal + (float) $order->shipping_cost, 2);
+        $currentDiscount = (float) $order->discount;
+        $calculatedDiscount = match ($type) {
+            'percent' => round($base * min($value, 100) / 100, 2),
+            default => round(min($value, $base), 2),
+        };
+
+        $newDiscount = round(max($currentDiscount, $calculatedDiscount), 2);
+
+        if ($newDiscount <= $currentDiscount) {
+            return false;
+        }
+
+        $newTotal = round(max(0, $base - $newDiscount), 2);
+
+        $order->update([
+            'discount' => $newDiscount,
+            'total' => $newTotal,
+        ]);
+
+        $order->payment?->update([
+            'amount' => $newTotal,
+            'status' => 'pending',
+        ]);
+
+        return true;
     }
 
     public function print(Order $order)

@@ -12,7 +12,11 @@ class PaymentReminderMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Order $order)
+    public function __construct(
+        public Order $order,
+        public ?string $customMessage = null,
+        public bool $discountApplied = false,
+    )
     {
     }
 
@@ -27,6 +31,8 @@ class PaymentReminderMail extends Mailable
                 // Enlace firmado: abre el pedido con toda la informacion y el
                 // boton de pago, sin que el cliente teclee folio ni correo.
                 'orderUrl' => URL::signedRoute('orders.public.show', $this->order),
+                'customMessage' => $this->customMessage,
+                'discountApplied' => $this->discountApplied,
             ]);
     }
 }

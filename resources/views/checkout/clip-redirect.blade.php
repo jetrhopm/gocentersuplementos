@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pago con Clip | '.config('app.name'))
+@section('title', 'Pago con tarjeta | '.config('app.name'))
 
 @php
     $receivedUrl = URL::signedRoute('checkout.received', $order);
@@ -9,9 +9,9 @@
 @section('content')
 <section class="container-page py-16">
     <div class="panel mx-auto max-w-2xl overflow-hidden p-8 text-center">
-        <span class="badge">Clip</span>
+        <span class="badge">Tarjeta</span>
         <h1 class="mt-4 text-3xl font-black uppercase text-white">Finaliza tu pago</h1>
-        <p class="mt-4 text-zinc-300">Abriremos la pasarela segura de Clip para completar el pedido {{ $order->folio }}.</p>
+        <p class="mt-4 text-zinc-300">Abriremos una pasarela segura para completar el pago con tarjeta del pedido {{ $order->folio }}.</p>
 
         <div class="mt-6 rounded-lg border border-zinc-800 bg-zinc-950 p-4 text-left text-sm text-zinc-400">
             <div class="flex items-center justify-between gap-4">
@@ -28,7 +28,7 @@
             <a href="{{ $receivedUrl }}" class="btn-secondary min-h-12">Ver pedido</a>
         </div>
 
-        <p class="mt-5 text-xs leading-5 text-zinc-500">Si la ventana no abre, usa el boton para continuar. Tu pago se procesa directamente en Clip con sus estandares de seguridad.</p>
+        <p class="mt-5 text-xs leading-5 text-zinc-500">Si la ventana no abre, usa el boton para continuar. Tu pago se procesa en una pasarela segura para pagos con tarjeta.</p>
     </div>
 </section>
 

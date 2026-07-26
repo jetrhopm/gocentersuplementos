@@ -155,6 +155,53 @@ class CheckoutController extends Controller
         ]);
     }
 
+    public function paymentMethod(Request $request, Order $order)
+    {
+        $data = $request->validate([
+            'payment_method' => ['required', 'in:transferencia,clip,oxxo'],
+        ]);
+
+        if ($order->status === Order::STATUS_PAID) {
+            return back()->with('status', 'Este pedido ya esta pagado.');
+        }
+
+        if (! $order->isPayable()) {
+            return back()->withErrors(['payment_method' => 'Este pedido ya no permite cambiar el metodo de pago.']);
+        }
+
+        $method = $data['payment_method'];
+        $status = match ($method) {
+            'clip' => Order::STATUS_PENDING_CLIP,
+            'oxxo' => Order::STATUS_PENDING_OXXO,
+            default => Order::STATUS_PENDING_TRANSFER,
+        };
+
+        $order->update([
+            'payment_method' => $method,
+            'status' => $status,
+        ]);
+
+        $order = $order->fresh('payment');
+        $this->ensurePayment($order);
+        $order->load('payment');
+        $order->payment?->update([
+            'method' => $method,
+            'provider' => match ($method) {
+                'clip' => 'clip',
+                'oxxo' => 'oxxo',
+                default => 'transferencia',
+            },
+            'status' => 'pending',
+            'amount' => $order->total,
+            'currency' => 'MXN',
+            'external_reference' => $order->folio,
+            'payment_request_id' => $method === 'clip' ? $order->payment?->payment_request_id : null,
+            'payment_request_url' => $method === 'clip' ? $order->payment?->payment_request_url : null,
+        ]);
+
+        return back()->with('status', 'Metodo de pago actualizado.');
+    }
+
     public function transferReference(Request $request, Order $order)
     {
         $data = $request->validate([

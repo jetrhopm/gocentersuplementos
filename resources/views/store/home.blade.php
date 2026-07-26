@@ -33,6 +33,7 @@
         'accesorios-deportivos' => 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80',
         'packs-gocenter' => asset('assets/categories/packs-gocenter.jpg'),
         'mochilas' => asset('assets/categories/mochilas.jpg'),
+        'jerseys' => asset('assets/categories/jerseys.jpg'),
         'ropa-deportiva-hombre' => 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80',
         'ropa-deportiva-mujer' => 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80',
         'ofertas' => 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80',

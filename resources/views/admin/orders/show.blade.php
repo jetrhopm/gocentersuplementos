@@ -9,7 +9,7 @@
         <h1 class="mt-3 text-3xl font-black uppercase text-white">{{ $order->folio }}</h1>
     </div>
     <div class="flex flex-wrap gap-2">
-        @if($order->isPayable())
+        @if(false && $order->isPayable())
             <form method="POST" action="{{ route('admin.orders.payment-reminder', $order) }}" onsubmit="return confirm('Se enviara un correo a {{ $order->customer_email }} con el enlace de pago. ¿Continuar?');">
                 @csrf
                 <button type="submit" class="btn-primary"><i data-lucide="mail" class="h-4 w-4"></i>Enviar recordatorio de pago</button>
@@ -29,6 +29,39 @@
 
 <div class="mt-8 grid gap-6 lg:grid-cols-[1fr_24rem]">
     <div class="grid gap-6">
+        @if($order->isPayable())
+            <div class="panel p-5">
+                <h2 class="text-xl font-black uppercase text-white">Recordatorio de pago</h2>
+                <p class="mt-2 text-sm leading-6 text-zinc-500">Envia un correo para que el cliente abra su pedido, revise el resumen y pueda cambiar metodo de pago desde la pagina.</p>
+                <form method="POST" action="{{ route('admin.orders.payment-reminder', $order) }}" class="mt-5 grid gap-4" onsubmit="return confirm('Se enviara un recordatorio a {{ $order->customer_email }}. Si capturaste descuento, se aplicara al total pendiente. Continuar?');">
+                    @csrf
+                    <div class="field">
+                        <label>Mensaje opcional para el cliente</label>
+                        <textarea name="reminder_note" rows="3" placeholder="Ej. Te dejamos este recordatorio por si quieres retomar tu compra.">{{ old('reminder_note') }}</textarea>
+                    </div>
+                    <div class="grid gap-4 md:grid-cols-[12rem_1fr]">
+                        <div class="field">
+                            <label>Tipo de descuento</label>
+                            <select name="discount_type">
+                                <option value="none" @selected(old('discount_type', 'none') === 'none')>Sin descuento</option>
+                                <option value="percent" @selected(old('discount_type') === 'percent')>Porcentaje</option>
+                                <option value="fixed" @selected(old('discount_type') === 'fixed')>Monto fijo</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Valor del descuento</label>
+                            <input type="number" name="discount_value" value="{{ old('discount_value') }}" min="0" step="0.01" placeholder="Ej. 10 para 10% o 100 para $100">
+                            <span class="text-xs text-zinc-500">Se aplica solo si mejora el descuento actual del pedido. No se duplica en envios repetidos.</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full sm:w-auto">
+                        <i data-lucide="mail" class="h-4 w-4"></i>
+                        Enviar recordatorio de pago
+                    </button>
+                </form>
+            </div>
+        @endif
+
         <div class="panel p-5">
             <h2 class="text-xl font-black uppercase text-white">Cliente y direccion</h2>
             <div class="mt-5 grid gap-3 text-sm text-zinc-300 md:grid-cols-2">

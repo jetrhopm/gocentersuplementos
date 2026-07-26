@@ -51,7 +51,7 @@
                         <div class="mt-1 font-bold text-white">{{ $order->postal_code }}</div>
                     </div>
                     <div class="rounded-lg border border-zinc-800 bg-zinc-950/70 p-4 md:col-span-2">
-                        <div class="text-xs uppercase text-zinc-500">Direccion</div>
+                        <div class="text-xs uppercase text-zinc-500">Direccion de envio</div>
                         <div class="mt-1 leading-6 text-white">
                             {{ $order->street }} {{ $order->external_number }}
                             @if($order->internal_number)
@@ -69,6 +69,54 @@
                 </div>
             </div>
 
+            @if($order->isPayable())
+                <div class="panel p-6">
+                    <div class="flex items-center gap-3">
+                        <span class="checkout-heading-icon"><i data-lucide="wallet-cards" class="h-5 w-5"></i></span>
+                        <div>
+                            <h2 class="text-xl font-black uppercase text-white">Retomar tu pedido</h2>
+                            <p class="mt-1 text-sm text-zinc-400">Revisa el resumen y elige como quieres completar el pago.</p>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ URL::signedRoute('checkout.payment-method', $order) }}" class="mt-5 grid gap-4">
+                        @csrf
+                        <div class="grid gap-3 md:grid-cols-3">
+                            <label class="payment-card clip">
+                                <input type="radio" name="payment_method" value="clip" @checked($order->payment_method === 'clip') class="sr-only">
+                                <span class="payment-icon"><i data-lucide="credit-card" class="h-5 w-5"></i></span>
+                                <span class="min-w-0">
+                                    <span class="font-black uppercase text-white">Tarjeta</span>
+                                    <span class="mt-1 block text-xs leading-5 text-zinc-400">Debito o credito</span>
+                                </span>
+                                <span class="payment-check"><i data-lucide="check" class="h-4 w-4"></i></span>
+                            </label>
+                            <label class="payment-card bank">
+                                <input type="radio" name="payment_method" value="transferencia" @checked($order->payment_method === 'transferencia') class="sr-only">
+                                <span class="payment-icon"><i data-lucide="landmark" class="h-5 w-5"></i></span>
+                                <span class="min-w-0">
+                                    <span class="font-black uppercase text-white">Transferencia</span>
+                                    <span class="mt-1 block text-xs leading-5 text-zinc-400">Validacion bancaria</span>
+                                </span>
+                                <span class="payment-check"><i data-lucide="check" class="h-4 w-4"></i></span>
+                            </label>
+                            <label class="payment-card oxxo">
+                                <input type="radio" name="payment_method" value="oxxo" @checked($order->payment_method === 'oxxo') class="sr-only">
+                                <span class="payment-icon"><i data-lucide="qr-code" class="h-5 w-5"></i></span>
+                                <span class="min-w-0">
+                                    <span class="font-black uppercase text-white">OXXO</span>
+                                    <span class="mt-1 block text-xs leading-5 text-zinc-400">Codigo QR</span>
+                                </span>
+                                <span class="payment-check"><i data-lucide="check" class="h-4 w-4"></i></span>
+                            </label>
+                        </div>
+                        <button class="btn-secondary min-h-12 w-full sm:w-auto" type="submit">
+                            <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                            Actualizar metodo de pago
+                        </button>
+                    </form>
+                </div>
+            @endif
+
             @if($order->payment_method === 'clip' && $order->isPayable())
                 <div class="panel p-6">
                     <div class="flex items-center gap-3">
@@ -82,7 +130,7 @@
                         @csrf
                         <button class="btn-primary min-h-12 w-full sm:w-auto" type="submit">
                             <i data-lucide="credit-card" class="h-4 w-4"></i>
-                            Pagar con Clip
+                            Pagar con tarjeta
                         </button>
                     </form>
                 </div>

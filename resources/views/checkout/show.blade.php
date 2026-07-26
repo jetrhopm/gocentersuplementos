@@ -56,7 +56,7 @@
                     </button>
                     <button type="button" class="checkout-step-pill" data-checkout-goto="1">
                         <span>2</span>
-                        Direccion
+                        Envio
                     </button>
                     <button type="button" class="checkout-step-pill" data-checkout-goto="2">
                         <span>3</span>
@@ -151,9 +151,12 @@
                 <div class="checkout-heading">
                     <span class="checkout-heading-icon"><i data-lucide="map-pinned" class="h-5 w-5"></i></span>
                     <div>
-                        <h2 class="text-xl font-black uppercase text-white">Direccion</h2>
-                        <p class="mt-1 text-sm text-zinc-500">Captura una direccion completa para evitar retrasos.</p>
+                        <h2 class="text-xl font-black uppercase text-white">Direccion de envio</h2>
+                        <p class="mt-1 text-sm text-zinc-500">Enviaremos tu pedido por paqueteria a la direccion que nos indiques.</p>
                     </div>
+                </div>
+                <div class="mt-5 rounded-lg border border-red-500/25 bg-red-500/10 p-4 text-sm leading-6 text-red-50">
+                    Enviaremos tu pedido por paqueteria a la direccion que nos indiques. Por ahora, las compras realizadas en la pagina se entregan unicamente a domicilio.
                 </div>
                 <div class="mt-5 grid gap-4 md:grid-cols-2">
                     <div class="field md:col-span-2">
@@ -280,12 +283,12 @@
                         <span class="min-w-0">
                             <span class="flex flex-wrap items-center gap-2">
                                 <span class="font-black uppercase text-white">Transferencia bancaria</span>
-                                <span class="badge">Manual</span>
+                                <span class="badge">Validacion bancaria</span>
                             </span>
-                            <span class="mt-2 block text-sm leading-6 text-zinc-400">Genera el folio y te muestra los datos bancarios para pagar. El admin valida el comprobante.</span>
+                            <span class="mt-2 block text-sm leading-6 text-zinc-400">Tu pedido quedara reservado mientras realizas la transferencia. Una vez confirmado el pago, comenzaremos a prepararlo. La validacion puede tomar de 0 a 48 horas habiles.</span>
                             <span class="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase accent-text">
                                 <i data-lucide="receipt-text" class="h-3.5 w-3.5"></i>
-                                Pedido pendiente de aprobacion
+                                Se prepara al confirmar el pago
                             </span>
                         </span>
                         <span class="payment-check"><i data-lucide="check" class="h-4 w-4"></i></span>
@@ -295,10 +298,10 @@
                         <span class="payment-icon"><i data-lucide="credit-card" class="h-6 w-6"></i></span>
                         <span class="min-w-0">
                             <span class="flex flex-wrap items-center gap-2">
-                                <span class="font-black uppercase text-white">Pago con Clip</span>
-                                <span class="badge">Tarjeta externa</span>
+                                <span class="font-black uppercase text-white">Tarjeta de debito o credito</span>
+                                <span class="badge">Pago seguro</span>
                             </span>
-                            <span class="mt-2 block text-sm leading-6 text-zinc-400">Tu pago sera procesado por Clip con estandares de seguridad para pagos en linea.</span>
+                            <span class="mt-2 block text-sm leading-6 text-zinc-400">Paga de forma segura con tarjeta. El cobro se procesa mediante una pasarela protegida.</span>
                             <span class="mt-3 inline-flex items-center gap-2 text-xs font-bold uppercase accent-text">
                                 <i data-lucide="shield-check" class="h-3.5 w-3.5"></i>
                                 Redireccion segura

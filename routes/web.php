@@ -51,6 +51,7 @@ Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/', [CheckoutController::class, 'show'])->name('show');
     Route::post('/', [CheckoutController::class, 'store'])->middleware('throttle:6,1')->name('store');
     Route::get('/pedido-recibido/{order}', [CheckoutController::class, 'received'])->middleware('signed')->name('received');
+    Route::post('/pedido-recibido/{order}/metodo-pago', [CheckoutController::class, 'paymentMethod'])->middleware(['signed', 'throttle:12,1'])->name('payment-method');
     Route::post('/pedido-recibido/{order}/referencia', [CheckoutController::class, 'transferReference'])->middleware(['signed', 'throttle:12,1'])->name('transfer.reference');
 });
 

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pago con Clip | '.config('app.name'))
+@section('title', 'Pago con tarjeta | '.config('app.name'))
 
 @php
     $receivedUrl = $order ? URL::signedRoute('checkout.received', $order) : null;
@@ -15,7 +15,7 @@
 @section('content')
 <section class="container-page py-16">
     <div class="panel mx-auto max-w-2xl p-8 text-center">
-        <span class="badge">Clip</span>
+        <span class="badge">Tarjeta</span>
         <h1 class="mt-4 text-3xl font-black uppercase text-white">
             @if($isPaid)
                 Pago aprobado

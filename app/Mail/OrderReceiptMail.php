@@ -29,6 +29,7 @@ class OrderReceiptMail extends Mailable implements ShouldQueue
             ->view('emails.orders.receipt')
             ->with([
                 'orderUrl' => URL::signedRoute('orders.public.show', $this->order),
+                'bank' => config('services.bank_transfer'),
                 'oxxo' => config('services.oxxo_payment'),
                 'paymentReceived' => $this->paymentReceived,
             ]);
